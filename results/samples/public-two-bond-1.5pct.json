@@ -1,6 +1,6 @@
 {
   "schema": "dlr-calculation-v1",
-  "generated_utc": "2026-11-16T13:43:57+00:00",
+  "generated_utc": "2026-11-16T15:16:42+00:00",
   "engine_version": "0.1.0",
   "applicant": "Mark Andrei Condino (sole applicant)",
   "project": "Sizing Disaster Liquidity Reserves under Overlapping Regional Shocks",
@@ -1488,23 +1488,10 @@
   ],
   "recorded_validation": {
     "validation": {
-      "generated_utc": "2026-11-16T12:42:10+00:00",
-      "checks": 43,
-      "passed": 41,
-      "discrepancies": [
-        {
-          "check": "16x16 grid bracket width at 0.5%",
-          "target": "$2,500,000 (proposal: 'left a $2.5m bracket')",
-          "computed": "$0 wide ($105,000,000)",
-          "note": "The 16x16 dominating-cell grid resolves 0.5% to $105,000,000. A $2.5m bracket ($105,000,000 to $107,500,000) comes from the 200x200 grid with the Poisson coupling bound instead."
-        },
-        {
-          "check": "Largest error as a share of its allowed tolerance",
-          "target": "2.1e-13",
-          "computed": "5.15e-13",
-          "note": "Evaluator run on Linux-6.18.58.1-microsoft-standard-WSL2-x86_64-with-glibc2.39. The exact value is floating-point rounding and changes with platform and BLAS; every case stays below 1e-12 of its tolerance."
-        }
-      ],
+      "generated_utc": "2026-11-16T15:15:26+00:00",
+      "checks": 55,
+      "passed": 55,
+      "discrepancies": [],
       "source": "results/validation.json"
     },
     "benchmark": {

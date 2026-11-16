@@ -1,6 +1,6 @@
 # Reserve report: Public two-bond example (ADB 2026 KGZ and TJK bonds)
 
-Sizing Disaster Liquidity Reserves under Overlapping Regional Shocks. Prepared with the reserve engine 0.1.0 on 2026-11-16T13:43:57+00:00. Applicant: Mark Andrei Condino (sole applicant).
+Sizing Disaster Liquidity Reserves under Overlapping Regional Shocks. Prepared with the reserve engine 0.1.0 on 2026-11-16T15:16:42+00:00. Applicant: Mark Andrei Condino (sole applicant).
 
 ## Result
 
@@ -54,7 +54,5 @@ Shared earthquake multiplier: 0 to 2. Shared rain share: 0% to 25%. Base point: 
 - Supporting scenario lies in the range and preserves marginal rates: pass (shared earthquake rate 2 x base, shared rain 25% of the smaller neighbouring rain rate)
 - Certified bound is never below an observed feasible scenario: pass (largest (observed - bound) 0.00e+00)
 - Independent state-space solver agrees at the base and supporting scenarios: pass (max abs exceedance difference 5.55e-17)
-- Recorded validation (2026-11-16T12:42:10+00:00): 41 of 43 checks agree with the proposal targets
-  - Discrepancy: 16x16 grid bracket width at 0.5%: target $2,500,000 (proposal: 'left a $2.5m bracket'), computed $0 wide ($105,000,000)
-  - Discrepancy: Largest error as a share of its allowed tolerance: target 2.1e-13, computed 5.15e-13
+- Recorded validation (2026-11-16T15:15:26+00:00): 55 of 55 checks agree with the proposal targets
 - Official evaluation-v1 evaluator (classical_cpu): 13/13 cases and 65/65 metric checks pass
