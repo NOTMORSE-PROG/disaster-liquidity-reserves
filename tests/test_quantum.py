@@ -62,14 +62,3 @@ def test_precision_requirements():
     assert row["monte_carlo_queries_95"] == math.ceil(1.959963984540054**2 * 0.012 * 0.988 / 1e-6)
     assert row["qae_grover_depth"] & (row["qae_grover_depth"] - 1) == 0  # power of two
     assert row["qae_queries_95"] < row["monte_carlo_queries_95"]
-
-
-def test_compiled_resources_when_qiskit_is_installed(base):
-    pytest.importorskip("qiskit")
-    from liquidity_reserves.quantum import compiled_resources
-
-    curve, amount = base
-    resources = compiled_resources(curve, amount)
-    q = resources["circuits"]["grover_iterate_Q"]
-    assert resources["qubits"] == 6
-    assert q["cx"] > resources["circuits"]["loading_A"]["cx"] > 0

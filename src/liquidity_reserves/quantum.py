@@ -165,69 +165,183 @@ def queries_for_precision(probability: float, epsilon: float) -> dict:
     }
 
 
-def compiled_resources(curve: Curve, amount_units: int) -> dict:
-    """Qubits, CX count and depth of the loading operator A and one Grover iterate Q.
+def interval_coverage(probability: float, repeats: int = 1000, seed: int = 20261113) -> list:
+    """How often the confidence region covers the exact value, by repeated sampling.
 
-    Requires Qiskit. Circuits compile to rz/sx/x/cx with all-to-all connectivity.
+    Shots are drawn from sin^2((2k + 1) theta), the flag probabilities the full
+    circuit was verified to reproduce, so each repeat is a fresh run of the same
+    estimator without re-simulating the circuit.
     """
-    from qiskit import QuantumCircuit, transpile
-    from qiskit.circuit.library import StatePreparation, UCRYGate
+    from .quantum_chain import confidence_region
 
-    amplitudes, mask, width = loaded_state(curve, amount_units)
-    qubits = width + 1
-    load = QuantumCircuit(qubits, name="A")
-    load.append(StatePreparation(amplitudes), range(width))
-    load.append(UCRYGate([math.pi if f else 0.0 for f in mask]), [width, *range(width)])
-    flag = qubits - 1
-    step = QuantumCircuit(qubits)
-    step.z(flag)
-    step.compose(load.inverse(), inplace=True)
-    step.x(range(qubits))
-    step.h(flag)
-    step.mcx(list(range(flag)), flag)
-    step.h(flag)
-    step.x(range(qubits))
-    step.compose(load, inplace=True)
-    basis = ["rz", "sx", "x", "cx"]
-    rows = {}
-    for name, circuit in (("loading_A", load), ("grover_iterate_Q", step)):
-        compiled = transpile(circuit, basis_gates=basis, optimization_level=1, seed_transpiler=7)
-        rows[name] = {
-            "qubits": compiled.num_qubits,
-            "cx": int(compiled.count_ops().get("cx", 0)),
-            "depth": int(compiled.depth()),
-        }
-    return {"qubits": qubits, "register_qubits": width, "circuits": rows}
-
-
-def resource_table(cases, precisions=(1e-3, 1e-4)) -> list:
-    """Resource rows for (label, curve, amount) cases; compiled counts need Qiskit."""
+    rng = np.random.default_rng(seed)
+    theta = math.asin(math.sqrt(probability))
     rows = []
-    for label, curve, amount in cases:
-        compiled = compiled_resources(curve, amount)
-        probability = curve.exceedance(amount)
-        q = compiled["circuits"]["grover_iterate_Q"]
-        for epsilon in precisions:
-            need = queries_for_precision(probability, epsilon)
-            rows.append(
+    for powers in ((0, 1, 2, 4, 8, 16), (0, 1, 2, 4, 8, 16, 32)):
+        frequencies = 2 * np.asarray(powers) + 1
+        p = np.sin(frequencies * theta) ** 2
+        shots = np.full(len(powers), 100)
+        covered, widths = 0, []
+        for _ in range(repeats):
+            region = confidence_region(rng.binomial(shots, p), shots, powers)
+            if region is not None:
+                covered += region[0] <= probability <= region[1]
+                widths.append(region[1] - region[0])
+        rows.append(
+            {
+                "max_power": powers[-1],
+                "repeats": repeats,
+                "coverage": covered / repeats,
+                "median_width": float(np.median(widths)),
+                "nominal": 0.95,
+            }
+        )
+    return rows
+
+
+def chain_study(seed: int = 20261113, log=print) -> dict:
+    """Verify and run the tensor-chain circuit (needs qiskit and qiskit-aer)."""
+    from .bounds import bracket_reserve
+    from .contraction import choose_registers, distribution
+    from .examples import DEFAULT_RANGE, public_two_bond, synthetic_chain
+    from .quantum_chain import (
+        FullCircuitEstimator,
+        chain_circuit,
+        check_arithmetic,
+        compiled_counts,
+        exact_joint_law,
+        full_circuit_flag_probabilities,
+        loaded_outcome_law,
+        quantum_reserve_search,
+    )
+
+    pool = public_two_bond()
+    rates = pool.rates(pool.base_point)
+    classical = bracket_reserve(pool, DEFAULT_RANGE, 0.015)
+    reserve = classical.base.lower_units
+    probability = classical.base.curve.exceedance(reserve)
+    two = chain_circuit(pool, rates, reserve)
+    log("Verifying the two-country circuit")
+    powers = [0, 1, 2, 3, 5]
+    full = full_circuit_flag_probabilities(two, powers)
+    theta = math.asin(math.sqrt(probability))
+    theory = [math.sin((2 * k + 1) * theta) ** 2 for k in powers]
+    three_pool = synthetic_chain(3)
+    three_rates = three_pool.rates((1.4, 0.2))
+    three = chain_circuit(three_pool, three_rates, 130_000_000 * 400)
+    log("Verifying the three-country circuit")
+    verification = {
+        "two_countries": {
+            "qubits": two.num_qubits,
+            "loading_max_error": float(
+                np.max(np.abs(loaded_outcome_law(two, 2) - exact_joint_law(pool, rates)))
+            ),
+            "arithmetic": check_arithmetic(two, 2),
+            "full_circuit_powers": powers,
+            "full_circuit_probabilities": full,
+            "theory": theory,
+            "full_circuit_max_error": float(
+                max(abs(a - b) for a, b in zip(full, theory, strict=True))
+            ),
+        },
+        "three_countries": {
+            "qubits": three.num_qubits,
+            "loading_max_error": float(
+                np.max(
+                    np.abs(loaded_outcome_law(three, 3) - exact_joint_law(three_pool, three_rates))
+                )
+            ),
+            "arithmetic": check_arithmetic(three, 3),
+        },
+    }
+    estimator = FullCircuitEstimator(shots=100, seed=seed)
+    log("Full-circuit amplitude estimation at the base reserve")
+    estimate = {**estimator.estimate(pool, rates, reserve), "exact": probability}
+    searches = []
+    for limit, expected in ((0.015, classical.base.lower_units), (0.005, None)):
+        log(f"Quantum reserve search at {limit:.1%}")
+        found = quantum_reserve_search(pool, pool.base_point, limit, estimator)
+        exact_units = expected or bracket_reserve(pool, DEFAULT_RANGE, limit).base.lower_units
+        searches.append({**found, "classical_reserve_usd": exact_units / 400})
+    log("Certifying the range bounds at 1.5%")
+    smaller, _ = classical.shortfall_evidence()
+    deeper = (0, 1, 2, 4, 8, 16, 32)
+    witness = estimator.estimate(pool, pool.rates(classical.witness.point), smaller, deeper)
+    witness.update(
+        point=list(classical.witness.point),
+        exact=classical.witness.curve.exceedance(smaller),
+        verdict="exceeds" if witness["ci95"] and witness["ci95"][0] > 0.015 else "not shown",
+    )
+    cells = []
+    for cell in classical.leaves:
+        bound = estimator.estimate(
+            pool, pool.dominating_rates(cell.low, cell.high), classical.upper_units, deeper
+        )
+        bound.update(
+            cell={
+                "earthquake_multiplier": [float(cell.low[0]), float(cell.high[0])],
+                "rain_share": [float(cell.low[1]), float(cell.high[1])],
+            },
+            exact=cell.curve.exceedance(classical.upper_units),
+            verdict="meets" if bound["ci95"] and bound["ci95"][1] <= 0.015 else "not shown",
+        )
+        cells.append(bound)
+    certification = {
+        "risk_limit": 0.015,
+        "lower_usd": classical.lower_units / 400,
+        "upper_usd": classical.upper_units / 400,
+        "witness": witness,
+        "dominating_cells": cells,
+        "certified": witness["verdict"] == "exceeds"
+        and all(c["verdict"] == "meets" for c in cells),
+    }
+    log("Compiling resource counts")
+    resources = []
+    cases = [("Public two-bond", pool)] + [
+        (f"Synthetic {n} countries", synthetic_chain(n)) for n in (2, 3, 5, 10, 20, 50)
+    ]
+    for label, chain_pool in cases:
+        n = chain_pool.n
+        base_rates = chain_pool.rates(chain_pool.base_point)
+        curve = distribution(chain_pool, base_rates, choose_registers(chain_pool).lower)
+        amount = curve.reserve_units(0.015)
+        counts = compiled_counts(chain_circuit(chain_pool, base_rates, amount))
+        q = counts["grover_iterate_Q"]
+        for epsilon in (1e-3, 1e-4):
+            need = queries_for_precision(curve.exceedance(amount), epsilon)
+            resources.append(
                 {
+                    "countries": n,
                     "case": label,
-                    "probability": probability,
-                    "qubits": compiled["qubits"],
-                    "cx_loading": compiled["circuits"]["loading_A"]["cx"],
+                    "probability": curve.exceedance(amount),
+                    "reserve_usd": amount / 400,
+                    "qubits": q["qubits"],
+                    "cx_loading": counts["loading_A"]["cx"],
                     "cx_per_grover_iterate": q["cx"],
                     "depth_per_grover_iterate": q["depth"],
                     **need,
                     "cx_deepest_circuit": need["qae_grover_depth"] * q["cx"],
                 }
             )
-    return rows
+    log("Measuring interval coverage")
+    coverage = interval_coverage(probability)
+    return {
+        "verification": verification,
+        "interval_coverage": coverage,
+        "full_circuit_estimate": estimate,
+        "reserve_search": searches,
+        "bound_certification": certification,
+        "resources": resources,
+        "simulator": "Qiskit Aer 0.17.2 statevector, every qubit simulated, seeded shots",
+        "compiler": "Qiskit 2.2.3 transpile to rz/sx/x/cx, optimization level 1, seed 7, "
+        "all-to-all connectivity",
+    }
 
 
 def main(argv=None) -> int:
-    """Write results/quantum.json: query study and compiled resources (needs Qiskit)."""
+    """Write results/quantum.json (needs qiskit and qiskit-aer)."""
     from .bounds import bracket_reserve
-    from .examples import DEFAULT_RANGE, public_two_bond, synthetic_chain
+    from .examples import DEFAULT_RANGE, public_two_bond
     from .paths import results_dir
 
     parser = argparse.ArgumentParser(description=main.__doc__)
@@ -235,30 +349,17 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
     pool = public_two_bond()
     result = bracket_reserve(pool, DEFAULT_RANGE, 0.015)
-    base = result.base.curve
-    study = query_study(base, result.base.lower_units)
-    cases = [("Public two-bond, base, P(L > $80m)", base, result.base.lower_units)]
-    for n in (5, 10, 20):
-        chain = synthetic_chain(n)
-        chain_result = bracket_reserve(chain, DEFAULT_RANGE, 0.015, gap_usd=1_000_000)
-        cases.append(
-            (
-                f"Synthetic {n} countries, base",
-                chain_result.base.curve,
-                chain_result.base.lower_units,
-            )
-        )
     report = {
-        "schema": "dlr-quantum-v1",
-        "scope": "Ideal noiseless statevector simulation on a CPU; no hardware, no speed-up claim.",
-        "query_study": study,
-        "resources": resource_table(cases),
-        "compiler": "Qiskit transpile to rz/sx/x/cx, optimization level 1, all-to-all coupling",
+        "schema": "dlr-quantum-v2",
+        "scope": "Simulated, noiseless quantum circuits on a CPU. No quantum hardware was used and "
+        "no speed-up over the exact classical contraction is claimed.",
+        "query_study": query_study(result.base.curve, result.base.lower_units),
+        **chain_study(log=lambda message: print(message, flush=True)),
     }
     output = args.output or results_dir() / "quantum.json"
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, indent=2, allow_nan=False) + "\n", encoding="utf-8")
-    print(f"Quantum check written to {output}")
+    print(f"Quantum study written to {output}")
     return 0
 
 

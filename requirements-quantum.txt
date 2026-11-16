@@ -1,8 +1,12 @@
-# Optional: compiles the amplitude-estimation circuits for gate and depth counts
-# (python -m liquidity_reserves.quantum). The app and tests do not need it.
+# Optional: builds, simulates and compiles the quantum circuits
+# (python -m liquidity_reserves.quantum). The app and core tests do not need it.
 -r requirements.txt
 qiskit==2.2.3
+qiskit-aer==0.17.2
 rustworkx==0.18.1
 dill==0.4.1
 stevedore==5.10.0
 typing_extensions==4.16.0
+psutil==7.2.2
+python-dateutil==4.0.0
+tzdata==2026.6
