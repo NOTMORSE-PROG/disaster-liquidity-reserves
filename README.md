@@ -17,8 +17,9 @@ sufficient.
   adaptive refinement of reserve bounds; an independent state-space solver for checks.
 - **Benchmark worker** (`worker.py`): the organizer's evaluation-v1 request/result
   contract as a `classical_cpu` entry for both public tracks.
-- **Browser app** (`python -m liquidity_reserves.app`): change the risk limit and
-  shared-rate inputs, calculate, inspect the evidence and export a report.
+- **ReserveBound app** (`python -m liquidity_reserves.app`): a local decision dashboard
+  with live inputs, the evidence behind each bound, scenario comparison, the benchmark
+  record, a method page with the quantum amplitude-estimation check, and a PDF report.
 
 ## Setup
 
@@ -42,8 +43,19 @@ python -m liquidity_reserves.app --open
 
 The app serves `http://127.0.0.1:8765/` on the local machine only. It preloads the
 public two-bond example; a clearly labelled synthetic overlapping-region chain (2 to 20
-countries) is in the example menu. Exports (JSON and Markdown) contain the inputs, the
-reserve bounds, the supporting scenario, the exceedance table and the validation status.
+countries) is in the portfolio menu. Results update as inputs change (up to 10
+countries; longer chains use the Calculate button).
+
+| View | What it shows |
+|---|---|
+| Decision | Reserve to hold, base reserve, dependence uplift and proof cost; why a smaller reserve falls short and why the upper amount is enough; exceedance curves; a map of the reserve needed across the shared-shock range with the refinement cells; each country's share of a shortfall; the regional chain; assumptions and live checks |
+| Scenarios | Reserve against the risk limit, and pinned scenarios compared side by side |
+| Evidence | Official evaluator results against the organizer's classical baselines, every proposal figure recomputed, evaluation counts and scaling |
+| Method | How the model, contraction and bounds work; amplitude estimation of P(payout > reserve) on an ideal simulator against Monte Carlo; quantum resource counts |
+
+Export offers a print-ready PDF report (A4, through the browser's Save as PDF), JSON
+data and a Markdown summary. Each contains the inputs, the reserve bounds, the
+supporting scenario and the validation status.
 
 ## Test
 
@@ -52,6 +64,21 @@ python -m pytest              # all tests
 python -m pytest -m "not slow"
 ruff check . && ruff format --check .
 ```
+
+## Quantum amplitude-estimation check
+
+```sh
+python -m pip install -e ".[quantum]"   # Qiskit, only needed to compile circuits
+python -m liquidity_reserves.quantum    # writes results/quantum.json
+```
+
+A payout register holds the aggregate payout law, a flag marks payouts above the
+reserve, and maximum-likelihood amplitude estimation recovers P(payout > reserve) from
+Grover-amplified counts. It runs as an ideal noiseless statevector simulation on the CPU
+and compares query counts with Monte Carlo. The law is loaded from the classical
+contraction, so this checks the estimator, its query scaling and the circuit resources
+(qubits, CX count, depth) for a hardware run; it is not a speed-up claim. The app runs the
+simulation without Qiskit; Qiskit is used only for the compiled resource counts.
 
 ## Validate the proposal figures
 
@@ -98,6 +125,7 @@ python worker.py --request request.json --output result.json
 | Two-bond reserve across the dependence range, 0.5% | USD 105m, 39 evaluations (16x16 grid: 517) |
 | Synthetic chain, 5 / 10 / 20 countries, 1.5% | USD 136.25m / 191.25m-191.5m / 289m-290m |
 | Contraction vs organizer's exact reference and independent state-space solver | agree to < 1e-15 |
+| Amplitude estimation vs Monte Carlo, P(L > $80m), 103,200 queries (ideal simulator) | RMSE 2.8e-5 vs 3.4e-4 |
 
 ADB targets are term probabilities and USD over the bond term; World Bank targets are
 annual event rates and USD per year. They are computed and reported separately.
@@ -115,12 +143,12 @@ and qubits.
 ## Layout
 
 ```
-src/liquidity_reserves/   engine, worker, validation, app service and static files
+src/liquidity_reserves/   engine, insights, quantum check, worker, validation, app
 worker.py                 evaluation-v1 entry point for the organizer's evaluator
 benchmark/                organizer's benchmark, vendored unmodified (see SHA256SUMS)
 scripts/                  public-suite packaging, evaluator run, report summary
 tests/                    pytest suite
-results/                  recorded validation and evaluator reports
+results/                  recorded validation, evaluator and quantum-check reports
 ```
 
 ## Method notes
