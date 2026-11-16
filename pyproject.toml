@@ -15,6 +15,8 @@ dependencies = ["numpy>=1.24,<3", "scipy>=1.10,<2"]
 
 [project.optional-dependencies]
 dev = ["pytest>=7,<10", "ruff>=0.5"]
+# Only needed to recompile the amplitude-estimation circuits for resource counts.
+quantum = ["qiskit==2.2.3"]
 
 [project.scripts]
 dlr-app = "liquidity_reserves.app.server:main"
