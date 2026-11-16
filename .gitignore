@@ -1,13 +1,36 @@
+# Python build and cache files
 __pycache__/
-*.pyc
+*.py[cod]
 *.egg-info/
 build/
 dist/
-.venv/
+.eggs/
 .pytest_cache/
 .ruff_cache/
-# Organizer guidance: keep private suites, seeds and reports out of Git.
-private-evaluation/
-# Scratch output from local benchmark runs; curated copies live in results/.
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Local environments and secrets
+.venv/
+venv/
+.env
+.env.*
+
+# Editor and operating system files
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and scratch output
+*.log
+tmp/
+# Local benchmark runs and app exports; curated copies live in results/.
 runs/
 exports/
+# Organizer guidance: keep private suites, seeds and reports out of Git.
+private-evaluation/
