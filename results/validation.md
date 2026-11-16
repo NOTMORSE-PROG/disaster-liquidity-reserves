@@ -1,6 +1,6 @@
 # Validation report
 
-Generated 2026-11-16T12:25:18+00:00 by engine 0.1.0 (full run). Mark Andrei Condino (sole applicant).
+Generated 2026-11-16T12:42:10+00:00 by engine 0.1.0 (full run). Mark Andrei Condino (sole applicant).
 
 41 of 43 checks agree with their targets.
 
@@ -15,7 +15,7 @@ Generated 2026-11-16T12:25:18+00:00 by engine 0.1.0 (full run). Mark Andrei Cond
 | Public two-bond example | Adaptive distribution evaluations at 0.5% | 39 | 39 | pass |  |
 | Public two-bond example | 16x16 grid distribution evaluations at 0.5% | 517 | 517 | pass |  |
 | Public two-bond example | 16x16 grid distribution evaluations at 1.5% | 517 | 517 | pass |  |
-| Public two-bond example | 16x16 grid bracket width at 0.5% | $2,500,000 (proposal: 'left a $2.5m bracket') | $105,000,000 | discrepancy | The 16x16 dominating-cell grid resolves 0.5% to $105,000,000. A $2.5m bracket ($105,000,000 to $107,500,000) comes from the 200x200 grid with the Poisson coupling bound instead. |
+| Public two-bond example | 16x16 grid bracket width at 0.5% | $2,500,000 (proposal: 'left a $2.5m bracket') | $0 wide ($105,000,000) | discrepancy | The 16x16 dominating-cell grid resolves 0.5% to $105,000,000. A $2.5m bracket ($105,000,000 to $107,500,000) comes from the 200x200 grid with the Poisson coupling bound instead. |
 | Public two-bond example | P(payout > $80m), base | 1.205% | 1.205% | pass |  |
 | Public two-bond example | P(payout > $80m), highest feasible scenario | 1.607% | 1.607% | pass | at earthquake multiplier 2, rain share 0.25 |
 | Public two-bond example | P(payout > $80m), bounded (200x200 grid plus coupling bound) | 1.631% | 1.631% | pass | coupling allowance 2.471e-04; the adaptive cell bounds after the 0.5% refinement give 1.634% |

@@ -1,6 +1,6 @@
 {
   "schema": "dlr-validation-v1",
-  "generated_utc": "2026-11-16T12:25:18+00:00",
+  "generated_utc": "2026-11-16T12:42:10+00:00",
   "applicant": "Mark Andrei Condino (sole applicant)",
   "engine_version": "0.1.0",
   "quick": false,
@@ -106,7 +106,7 @@
       "check": "16x16 grid bracket width at 0.5%",
       "proposal_target": "$2,500,000 (proposal: 'left a $2.5m bracket')",
       "computed": 0.0,
-      "computed_display": "$105,000,000",
+      "computed_display": "$0 wide ($105,000,000)",
       "status": "discrepancy",
       "note": "The 16x16 dominating-cell grid resolves 0.5% to $105,000,000. A $2.5m bracket ($105,000,000 to $107,500,000) comes from the 200x200 grid with the Poisson coupling bound instead."
     },
