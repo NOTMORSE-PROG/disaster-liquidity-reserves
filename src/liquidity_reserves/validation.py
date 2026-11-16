@@ -124,7 +124,7 @@ def two_bond_checks(checks: Checks) -> dict:
         f"({format_usd(envelope['reserves'][1]['lower_units'])} to "
         f"{format_usd(envelope['reserves'][1]['upper_units'])}) comes from the 200x200 grid "
         "with the Poisson coupling bound instead.",
-        _bracket_text(grid_strict),
+        f"{format_usd(grid_gap)} wide ({_bracket_text(grid_strict)})",
     )
 
     checks.percent(group, "P(payout > $80m), base", 1.205, loose.base.curve.exceedance(M80))
