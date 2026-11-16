@@ -136,6 +136,11 @@ results/                  recorded validation and evaluator reports
   dominating models, and the rounding bound is reported.
 - One distribution evaluation is one aggregate payout distribution (one contraction).
 
+## Licence
+
+Copyright 2026 Mark Andrei Condino. Licensed under the Apache License 2.0
+([`LICENSE`](LICENSE), [`NOTICE`](NOTICE)).
+
 ## Sources and licences
 
 `benchmark/` is the organizer's joint-loss baseline: code under Apache 2.0
