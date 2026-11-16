@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "generator_version": "holdout-v1",
+  "seed": 20261113,
+  "cases": [
+    "cases/adb-base.json",
+    "cases/adb-common-shock.json",
+    "cases/adb-independent.json",
+    "cases/adb-rain-cover.json",
+    "cases/adb-rain-stress.json",
+    "cases/kaz-kgz-base.json",
+    "cases/tjk-uzb-base.json"
+  ],
+  "files": {
+    "cases/adb-base.json": "91e4ca8e0ac73beb504b8a13bc80d5668c1f3005637d6e867bdc7bc31bfd1eb8",
+    "cases/adb-common-shock.json": "02eef9574f7193d66623dd8187d2c3224752dba0be8f12c83ef5c68eb704039a",
+    "cases/adb-independent.json": "7c00787e47e69a7dd62a175b08cf7005b8d8d7bd7460068ceeab366d0113dd50",
+    "cases/adb-rain-cover.json": "4e90443ebebb8aa7ee321f29ff7ab741fef810a3ddc69597769488387bcddaf1",
+    "cases/adb-rain-stress.json": "63126a131cbb9e250f3ade8fca9dd41af8930c4c64c82d9291d4f1fde608c735",
+    "cases/kaz-kgz-base.json": "2440dc1aed8757ad9168b690d24cb75c7a7be2d0230ba6fc7f132ef50944018b",
+    "cases/tjk-uzb-base.json": "27535b76fa74e0dbd80b45a64ce1cd8f376b12a4f6787ec2f0107dfe36b4cf31",
+    "data/adb_terms.json": "50bdb628d0a67d14966d16bda35b4ab9d6b2fc473bdec42c9a664db10cc2b69b",
+    "data/audit.json": "11c3931d374b53a7091a88dcea5184660ffe13bf159146f5327bcaaee9690cb8",
+    "data/flood.npz": "a843078285068838db0a7b83ba96aaecebceb4e69ba9774b99395a6e216bbaa1",
+    "data/seismic.npz": "ec8a93254dc4d9471792941022941d6ed5d76ab80e8950c21624393743a4bd25"
+  },
+  "note": "Public practice scenarios from benchmark/scenarios, copied unmodified."
+}

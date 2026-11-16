@@ -1,0 +1,516 @@
+{
+  "schema": "dlr-validation-v1",
+  "generated_utc": "2026-11-16T12:25:18+00:00",
+  "applicant": "Mark Andrei Condino (sole applicant)",
+  "engine_version": "0.1.0",
+  "quick": false,
+  "environment": {
+    "python": "3.12.10",
+    "numpy": "1.26.4",
+    "scipy": "1.15.3",
+    "platform": "Windows-10-10.0.19045-SP0"
+  },
+  "counting_rule": "One distribution evaluation is one aggregate payout distribution. Adaptive refinement counts the base point, each distinct range corner, and a centre scenario plus a dominating model for every cell created. The k-by-k grid counts the base point, four corners and 2k^2 cell evaluations (517 for k = 16).",
+  "summary": {
+    "checks": 43,
+    "passed": 41,
+    "discrepancies": [
+      "16x16 grid bracket width at 0.5%",
+      "Largest error as a share of its allowed tolerance"
+    ]
+  },
+  "checks": [
+    {
+      "group": "Public two-bond example",
+      "check": "Base reserve at the 1.5% three-year limit",
+      "proposal_target": "$80,000,000",
+      "computed": 80000000.0,
+      "computed_display": "$80,000,000",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Public two-bond example",
+      "check": "Reserve across the dependence range at 1.5%",
+      "proposal_target": "$87,500,000",
+      "computed": 87500000.0,
+      "computed_display": "$87,500,000",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Public two-bond example",
+      "check": "1.5% bracket resolved",
+      "proposal_target": true,
+      "computed": true,
+      "computed_display": true,
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Public two-bond example",
+      "check": "Adaptive distribution evaluations at 1.5%",
+      "proposal_target": 7,
+      "computed": 7,
+      "computed_display": 7,
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Public two-bond example",
+      "check": "Reserve across the dependence range at 0.5%",
+      "proposal_target": "$105,000,000",
+      "computed": 105000000.0,
+      "computed_display": "$105,000,000",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Public two-bond example",
+      "check": "0.5% bracket resolved",
+      "proposal_target": true,
+      "computed": true,
+      "computed_display": true,
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Public two-bond example",
+      "check": "Adaptive distribution evaluations at 0.5%",
+      "proposal_target": 39,
+      "computed": 39,
+      "computed_display": 39,
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Public two-bond example",
+      "check": "16x16 grid distribution evaluations at 0.5%",
+      "proposal_target": 517,
+      "computed": 517,
+      "computed_display": 517,
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Public two-bond example",
+      "check": "16x16 grid distribution evaluations at 1.5%",
+      "proposal_target": 517,
+      "computed": 517,
+      "computed_display": 517,
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Public two-bond example",
+      "check": "16x16 grid bracket width at 0.5%",
+      "proposal_target": "$2,500,000 (proposal: 'left a $2.5m bracket')",
+      "computed": 0.0,
+      "computed_display": "$105,000,000",
+      "status": "discrepancy",
+      "note": "The 16x16 dominating-cell grid resolves 0.5% to $105,000,000. A $2.5m bracket ($105,000,000 to $107,500,000) comes from the 200x200 grid with the Poisson coupling bound instead."
+    },
+    {
+      "group": "Public two-bond example",
+      "check": "P(payout > $80m), base",
+      "proposal_target": "1.205%",
+      "computed": 0.01204672090753404,
+      "computed_display": "1.205%",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Public two-bond example",
+      "check": "P(payout > $80m), highest feasible scenario",
+      "proposal_target": "1.607%",
+      "computed": 0.016066409986690625,
+      "computed_display": "1.607%",
+      "status": "pass",
+      "note": "at earthquake multiplier 2, rain share 0.25"
+    },
+    {
+      "group": "Public two-bond example",
+      "check": "P(payout > $80m), bounded (200x200 grid plus coupling bound)",
+      "proposal_target": "1.631%",
+      "computed": 0.01631351975355789,
+      "computed_display": "1.631%",
+      "status": "pass",
+      "note": "coupling allowance 2.471e-04; the adaptive cell bounds after the 0.5% refinement give 1.634%"
+    },
+    {
+      "group": "Public two-bond example",
+      "check": "Expected payout above $80m, base",
+      "proposal_target": "$282,355",
+      "computed": 282354.6985661411,
+      "computed_display": "$282,354.70",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Public two-bond example",
+      "check": "Expected payout above $80m, highest feasible scenario",
+      "proposal_target": "$385,043",
+      "computed": 385043.37022346817,
+      "computed_display": "$385,043.37",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Independent checks",
+      "check": "Coupling-grid envelope reserve at 1.5% (Markov generator laws)",
+      "proposal_target": "brackets the adaptive result",
+      "computed": [
+        87500000.0,
+        87500000.0
+      ],
+      "computed_display": "$87,500,000 to $87,500,000",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Independent checks",
+      "check": "Coupling-grid envelope reserve at 0.5% (Markov generator laws)",
+      "proposal_target": "brackets the adaptive result",
+      "computed": [
+        105000000.0,
+        107500000.0
+      ],
+      "computed_display": "$105,000,000 to $107,500,000",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Independent checks",
+      "check": "Reserve bounds at 1.5% recomputed with the state-space solver",
+      "proposal_target": "$87,500,000",
+      "computed": [
+        87500000.0,
+        87500000.0
+      ],
+      "computed_display": "$87,500,000",
+      "status": "pass",
+      "note": "7 evaluations"
+    },
+    {
+      "group": "Independent checks",
+      "check": "Reserve bounds at 0.5% recomputed with the state-space solver",
+      "proposal_target": "$105,000,000",
+      "computed": [
+        105000000.0,
+        105000000.0
+      ],
+      "computed_display": "$105,000,000",
+      "status": "pass",
+      "note": "39 evaluations"
+    },
+    {
+      "group": "Public two-bond example",
+      "check": "Expected principal loss, base",
+      "proposal_target": "near $10.06 million",
+      "computed": 10063513.348954108,
+      "computed_display": "$10,063,513",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Public two-bond example",
+      "check": "Expected principal loss, common shocks removed",
+      "proposal_target": "near $10.06 million",
+      "computed": 10063513.348954106,
+      "computed_display": "$10,063,513",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Public two-bond example",
+      "check": "Joint attachment, base",
+      "proposal_target": "4.41%",
+      "computed": 0.044137768730843525,
+      "computed_display": "4.41%",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Public two-bond example",
+      "check": "Joint attachment, common shocks removed",
+      "proposal_target": "2.72%",
+      "computed": 0.027156372630856754,
+      "computed_display": "2.72%",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Synthetic chain, 5 countries",
+      "check": "Reserve across the dependence range at 1.5%",
+      "proposal_target": "$136,250,000",
+      "computed": [
+        136250000.0,
+        136250000.0
+      ],
+      "computed_display": "$136,250,000",
+      "status": "pass",
+      "note": "gap tolerance $0; status resolved"
+    },
+    {
+      "group": "Synthetic chain, 5 countries",
+      "check": "Adaptive distribution evaluations",
+      "proposal_target": 567,
+      "computed": 567,
+      "computed_display": 567,
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Synthetic chain, 5 countries",
+      "check": "16x16 grid distribution evaluations",
+      "proposal_target": 517,
+      "computed": 517,
+      "computed_display": 517,
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Synthetic chain, 10 countries",
+      "check": "Reserve across the dependence range at 1.5%",
+      "proposal_target": "$191,250,000 to $191,500,000",
+      "computed": [
+        191250000.0,
+        191500000.0
+      ],
+      "computed_display": "$191,250,000 to $191,500,000",
+      "status": "pass",
+      "note": "gap tolerance $250,000; status within_gap"
+    },
+    {
+      "group": "Synthetic chain, 10 countries",
+      "check": "Adaptive distribution evaluations",
+      "proposal_target": 487,
+      "computed": 487,
+      "computed_display": 487,
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Synthetic chain, 10 countries",
+      "check": "16x16 grid distribution evaluations",
+      "proposal_target": 517,
+      "computed": 517,
+      "computed_display": 517,
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Synthetic chain, 20 countries",
+      "check": "Reserve across the dependence range at 1.5%",
+      "proposal_target": "$289,000,000 to $290,000,000",
+      "computed": [
+        289000000.0,
+        290000000.0
+      ],
+      "computed_display": "$289,000,000 to $290,000,000",
+      "status": "pass",
+      "note": "gap tolerance $1,000,000; status within_gap"
+    },
+    {
+      "group": "Synthetic chain, 20 countries",
+      "check": "Adaptive distribution evaluations",
+      "proposal_target": 379,
+      "computed": 379,
+      "computed_display": 379,
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Synthetic chain, 20 countries",
+      "check": "16x16 grid distribution evaluations",
+      "proposal_target": 517,
+      "computed": 517,
+      "computed_display": 517,
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Independent checks",
+      "check": "Payout exceedance curves vs organizer's exact reference (5 ADB scenarios)",
+      "proposal_target": "agree to numerical precision",
+      "computed": 2.7755575615628914e-16,
+      "computed_display": "max abs difference 2.78e-16",
+      "status": "pass",
+      "note": "adb-base, adb-common-shock, adb-independent, adb-rain-cover, adb-rain-stress"
+    },
+    {
+      "group": "Independent checks",
+      "check": "Tensor contraction vs state-space solver at 36 interior points (2, 3, 5 countries)",
+      "proposal_target": "36 points agree to numerical precision",
+      "computed": 3.3306690738754696e-16,
+      "computed_display": "max abs difference 3.33e-16",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Independent checks",
+      "check": "Dominating cell bound never below the state-space exceedance (36 points)",
+      "proposal_target": "no violation",
+      "computed": 0.0,
+      "computed_display": "largest (exact - bound) 0.00e+00",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Independent checks",
+      "check": "Each country's marginal payout law is unchanged across the range corners (5 countries)",
+      "proposal_target": "unchanged",
+      "computed": 5.551115123125783e-16,
+      "computed_display": "max abs difference 5.55e-16",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Resource estimate",
+      "check": "Peak traced memory of one contraction, 2 synthetic countries",
+      "proposal_target": "0.06 MiB",
+      "computed": 0.06,
+      "computed_display": "0.06 MiB",
+      "status": "pass",
+      "note": "598 payout levels; tracemalloc peak during factor construction and contraction"
+    },
+    {
+      "group": "Resource estimate",
+      "check": "Peak traced memory of one contraction, 5 synthetic countries",
+      "proposal_target": "0.40 MiB",
+      "computed": 0.39,
+      "computed_display": "0.39 MiB",
+      "status": "pass",
+      "note": "1,531 payout levels; tracemalloc peak during factor construction and contraction"
+    },
+    {
+      "group": "Resource estimate",
+      "check": "Peak traced memory of one contraction, 10 synthetic countries",
+      "proposal_target": "0.79 MiB",
+      "computed": 0.79,
+      "computed_display": "0.79 MiB",
+      "status": "pass",
+      "note": "3,077 payout levels; tracemalloc peak during factor construction and contraction"
+    },
+    {
+      "group": "Resource estimate",
+      "check": "Peak traced memory of one contraction, 20 synthetic countries",
+      "proposal_target": "1.58 MiB",
+      "computed": 1.58,
+      "computed_display": "1.58 MiB",
+      "status": "pass",
+      "note": "6,189 payout levels; tracemalloc peak during factor construction and contraction"
+    },
+    {
+      "group": "Resource estimate",
+      "check": "Peak traced memory of one contraction, 50 synthetic countries",
+      "proposal_target": "3.95 MiB",
+      "computed": 3.96,
+      "computed_display": "3.96 MiB",
+      "status": "pass",
+      "note": "15,489 payout levels; tracemalloc peak during factor construction and contraction"
+    },
+    {
+      "group": "Benchmark",
+      "check": "Metric checks passed (public scenarios and seeded practice cases)",
+      "proposal_target": "65 of 65",
+      "computed": [
+        65,
+        65
+      ],
+      "computed_display": "65 of 65",
+      "status": "pass",
+      "note": "13/13 cases; 130/130 team runs valid"
+    },
+    {
+      "group": "Benchmark",
+      "check": "Largest error as a share of its allowed tolerance",
+      "proposal_target": "2.1e-13",
+      "computed": 5.149960319306146e-13,
+      "computed_display": "5.15e-13",
+      "status": "discrepancy",
+      "note": "Evaluator run on Linux-6.18.58.1-microsoft-standard-WSL2-x86_64-with-glibc2.39. The exact value is floating-point rounding and changes with platform and BLAS; every case stays below 1e-12 of its tolerance."
+    }
+  ],
+  "reserve_table": [
+    {
+      "portfolio": "Public two-bond / 1.5%",
+      "reserve": "$87,500,000",
+      "adaptive_evaluations": 7,
+      "grid": "$87,500,000",
+      "grid_evaluations": 517
+    },
+    {
+      "portfolio": "Public two-bond / 0.5%",
+      "reserve": "$105,000,000",
+      "adaptive_evaluations": 39,
+      "grid": "$105,000,000",
+      "grid_evaluations": 517
+    },
+    {
+      "portfolio": "Synthetic 5 countries / 1.5%",
+      "reserve": "$136,250,000",
+      "adaptive_evaluations": 567,
+      "grid": "$136,250,000 to $136,750,000",
+      "grid_evaluations": 517
+    },
+    {
+      "portfolio": "Synthetic 10 countries / 1.5%",
+      "reserve": "$191,250,000 to $191,500,000",
+      "adaptive_evaluations": 487,
+      "grid": "$191,250,000 to $192,750,000",
+      "grid_evaluations": 517
+    },
+    {
+      "portfolio": "Synthetic 20 countries / 1.5%",
+      "reserve": "$289,000,000 to $290,000,000",
+      "adaptive_evaluations": 379,
+      "grid": "$289,000,000 to $291,500,000",
+      "grid_evaluations": 517
+    }
+  ],
+  "memory": [
+    {
+      "countries": 2,
+      "payout_levels": 598,
+      "peak_traced_mib": 0.06,
+      "proposal_mib": 0.06
+    },
+    {
+      "countries": 5,
+      "payout_levels": 1531,
+      "peak_traced_mib": 0.39,
+      "proposal_mib": 0.4
+    },
+    {
+      "countries": 10,
+      "payout_levels": 3077,
+      "peak_traced_mib": 0.79,
+      "proposal_mib": 0.79
+    },
+    {
+      "countries": 20,
+      "payout_levels": 6189,
+      "peak_traced_mib": 1.58,
+      "proposal_mib": 1.58
+    },
+    {
+      "countries": 50,
+      "payout_levels": 15489,
+      "peak_traced_mib": 3.96,
+      "proposal_mib": 3.95
+    }
+  ],
+  "benchmark": {
+    "totals": {
+      "cases": 13,
+      "cases_passing": 13,
+      "metric_checks": 65,
+      "metric_passes": 65,
+      "runs": 130,
+      "valid_runs": 130,
+      "worst_normalised_rmse": 5.149960319306146e-13
+    },
+    "source": "results/benchmark/summary.json"
+  }
+}

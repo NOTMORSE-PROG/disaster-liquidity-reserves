@@ -1,0 +1,388 @@
+{
+  "public": {
+    "protocol": "evaluation-v1",
+    "declared_execution": "classical_cpu",
+    "repeats": 10,
+    "baseline_samples": 8192,
+    "official_repeat_count_met": true,
+    "workload_coverage_met": false,
+    "protocol_eligible": false,
+    "tracks": {
+      "adb_drb": {
+        "all_cases_pass": true,
+        "geometric_time_ratio": null
+      },
+      "worldbank_elt": {
+        "all_cases_pass": true,
+        "geometric_time_ratio": null
+      }
+    },
+    "platform": "Linux-6.18.58.1-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "suite_sha256": "3b436e201e2c468fc786a6fb39611049e1b752013c69981d29a3b1234bc899d4",
+    "cases": [
+      {
+        "case": "adb-base",
+        "track": "adb_drb",
+        "countries": [
+          "KGZ",
+          "TJK"
+        ],
+        "team_accuracy_pass": true,
+        "valid_runs": 10,
+        "runs": 10,
+        "invalid_details": [],
+        "metric_checks": 5,
+        "metric_passes": 5,
+        "worst_normalised_rmse": 2.377783188537172e-13,
+        "model_evaluations": [
+          200
+        ],
+        "baseline_accuracy_pass": {
+          "exact": true,
+          "mc": false,
+          "qmc": false,
+          "stratified": false,
+          "importance": false
+        }
+      },
+      {
+        "case": "adb-common-shock",
+        "track": "adb_drb",
+        "countries": [
+          "KGZ",
+          "TJK"
+        ],
+        "team_accuracy_pass": true,
+        "valid_runs": 10,
+        "runs": 10,
+        "invalid_details": [],
+        "metric_checks": 5,
+        "metric_passes": 5,
+        "worst_normalised_rmse": 2.5718098993067264e-13,
+        "model_evaluations": [
+          200
+        ],
+        "baseline_accuracy_pass": {
+          "exact": true,
+          "mc": false,
+          "qmc": false,
+          "stratified": false,
+          "importance": false
+        }
+      },
+      {
+        "case": "adb-independent",
+        "track": "adb_drb",
+        "countries": [
+          "KGZ",
+          "TJK"
+        ],
+        "team_accuracy_pass": true,
+        "valid_runs": 10,
+        "runs": 10,
+        "invalid_details": [],
+        "metric_checks": 5,
+        "metric_passes": 5,
+        "worst_normalised_rmse": 5.149960319306146e-13,
+        "model_evaluations": [
+          200
+        ],
+        "baseline_accuracy_pass": {
+          "exact": true,
+          "mc": false,
+          "qmc": false,
+          "stratified": false,
+          "importance": false
+        }
+      },
+      {
+        "case": "adb-rain-cover",
+        "track": "adb_drb",
+        "countries": [
+          "KGZ",
+          "TJK"
+        ],
+        "team_accuracy_pass": true,
+        "valid_runs": 10,
+        "runs": 10,
+        "invalid_details": [],
+        "metric_checks": 5,
+        "metric_passes": 5,
+        "worst_normalised_rmse": 2.377783188537172e-13,
+        "model_evaluations": [
+          200
+        ],
+        "baseline_accuracy_pass": {
+          "exact": true,
+          "mc": false,
+          "qmc": false,
+          "stratified": false,
+          "importance": false
+        }
+      },
+      {
+        "case": "adb-rain-stress",
+        "track": "adb_drb",
+        "countries": [
+          "KGZ",
+          "TJK"
+        ],
+        "team_accuracy_pass": true,
+        "valid_runs": 10,
+        "runs": 10,
+        "invalid_details": [],
+        "metric_checks": 5,
+        "metric_passes": 5,
+        "worst_normalised_rmse": 2.7572847753887402e-14,
+        "model_evaluations": [
+          200
+        ],
+        "baseline_accuracy_pass": {
+          "exact": true,
+          "mc": false,
+          "qmc": false,
+          "stratified": false,
+          "importance": false
+        }
+      },
+      {
+        "case": "kaz-kgz-base",
+        "track": "worldbank_elt",
+        "countries": [
+          "KAZ",
+          "KGZ"
+        ],
+        "team_accuracy_pass": true,
+        "valid_runs": 10,
+        "runs": 10,
+        "invalid_details": [],
+        "metric_checks": 5,
+        "metric_passes": 5,
+        "worst_normalised_rmse": 2.6447101164022583e-14,
+        "model_evaluations": [
+          421968
+        ],
+        "baseline_accuracy_pass": {
+          "exact": true,
+          "mc": false,
+          "qmc": false,
+          "stratified": false,
+          "importance": false
+        }
+      },
+      {
+        "case": "tjk-uzb-base",
+        "track": "worldbank_elt",
+        "countries": [
+          "TJK",
+          "UZB"
+        ],
+        "team_accuracy_pass": true,
+        "valid_runs": 10,
+        "runs": 10,
+        "invalid_details": [],
+        "metric_checks": 5,
+        "metric_passes": 5,
+        "worst_normalised_rmse": 6.972863569272925e-14,
+        "model_evaluations": [
+          421968
+        ],
+        "baseline_accuracy_pass": {
+          "exact": true,
+          "mc": false,
+          "qmc": false,
+          "stratified": false,
+          "importance": true
+        }
+      }
+    ]
+  },
+  "practice": {
+    "protocol": "evaluation-v1",
+    "declared_execution": "classical_cpu",
+    "repeats": 10,
+    "baseline_samples": 8192,
+    "official_repeat_count_met": true,
+    "workload_coverage_met": true,
+    "protocol_eligible": true,
+    "tracks": {
+      "adb_drb": {
+        "all_cases_pass": true,
+        "geometric_time_ratio": 1.0894747560300764
+      },
+      "worldbank_elt": {
+        "all_cases_pass": true,
+        "geometric_time_ratio": 0.9818489953415128
+      }
+    },
+    "platform": "Linux-6.18.58.1-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "suite_sha256": "8e40f84ebb7341bf20b8557625a4dc4397a3ba975f18514711b47a6981bc5be2",
+    "cases": [
+      {
+        "case": "case-001",
+        "track": "adb_drb",
+        "countries": [
+          "KGZ",
+          "TJK"
+        ],
+        "team_accuracy_pass": true,
+        "valid_runs": 10,
+        "runs": 10,
+        "invalid_details": [],
+        "metric_checks": 5,
+        "metric_passes": 5,
+        "worst_normalised_rmse": 1.3785798410617587e-13,
+        "model_evaluations": [
+          200
+        ],
+        "baseline_accuracy_pass": {
+          "exact": true,
+          "mc": false,
+          "qmc": false,
+          "stratified": true,
+          "importance": true
+        }
+      },
+      {
+        "case": "case-002",
+        "track": "worldbank_elt",
+        "countries": [
+          "KAZ",
+          "TJK"
+        ],
+        "team_accuracy_pass": true,
+        "valid_runs": 10,
+        "runs": 10,
+        "invalid_details": [],
+        "metric_checks": 5,
+        "metric_passes": 5,
+        "worst_normalised_rmse": 3.703455205723403e-14,
+        "model_evaluations": [
+          421968
+        ],
+        "baseline_accuracy_pass": {
+          "exact": true,
+          "mc": false,
+          "qmc": false,
+          "stratified": false,
+          "importance": false
+        }
+      },
+      {
+        "case": "case-003",
+        "track": "adb_drb",
+        "countries": [
+          "KGZ",
+          "TJK"
+        ],
+        "team_accuracy_pass": true,
+        "valid_runs": 10,
+        "runs": 10,
+        "invalid_details": [],
+        "metric_checks": 5,
+        "metric_passes": 5,
+        "worst_normalised_rmse": 4.72056198075162e-14,
+        "model_evaluations": [
+          200
+        ],
+        "baseline_accuracy_pass": {
+          "exact": true,
+          "mc": false,
+          "qmc": false,
+          "stratified": false,
+          "importance": false
+        }
+      },
+      {
+        "case": "case-004",
+        "track": "worldbank_elt",
+        "countries": [
+          "TJK",
+          "TKM",
+          "KGZ"
+        ],
+        "team_accuracy_pass": true,
+        "valid_runs": 10,
+        "runs": 10,
+        "invalid_details": [],
+        "metric_checks": 5,
+        "metric_passes": 5,
+        "worst_normalised_rmse": 2.776022033543029e-14,
+        "model_evaluations": [
+          421968
+        ],
+        "baseline_accuracy_pass": {
+          "exact": true,
+          "mc": false,
+          "qmc": false,
+          "stratified": false,
+          "importance": false
+        }
+      },
+      {
+        "case": "case-005",
+        "track": "adb_drb",
+        "countries": [
+          "KGZ",
+          "TJK"
+        ],
+        "team_accuracy_pass": true,
+        "valid_runs": 10,
+        "runs": 10,
+        "invalid_details": [],
+        "metric_checks": 5,
+        "metric_passes": 5,
+        "worst_normalised_rmse": 1.4543941470347778e-13,
+        "model_evaluations": [
+          200
+        ],
+        "baseline_accuracy_pass": {
+          "exact": true,
+          "mc": false,
+          "qmc": false,
+          "stratified": false,
+          "importance": false
+        }
+      },
+      {
+        "case": "case-006",
+        "track": "worldbank_elt",
+        "countries": [
+          "UZB",
+          "KGZ",
+          "TJK",
+          "KAZ",
+          "TKM"
+        ],
+        "team_accuracy_pass": true,
+        "valid_runs": 10,
+        "runs": 10,
+        "invalid_details": [],
+        "metric_checks": 5,
+        "metric_passes": 5,
+        "worst_normalised_rmse": 2.317708122573518e-14,
+        "model_evaluations": [
+          421968
+        ],
+        "baseline_accuracy_pass": {
+          "exact": true,
+          "mc": false,
+          "qmc": false,
+          "stratified": false,
+          "importance": false
+        }
+      }
+    ]
+  },
+  "totals": {
+    "cases": 13,
+    "cases_passing": 13,
+    "metric_checks": 65,
+    "metric_passes": 65,
+    "runs": 130,
+    "valid_runs": 130,
+    "worst_normalised_rmse": 5.149960319306146e-13
+  }
+}

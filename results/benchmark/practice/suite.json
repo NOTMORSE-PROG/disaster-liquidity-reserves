@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "generator_version": "holdout-v1",
+  "seed": 20261113,
+  "cases": [
+    "cases/case-001.json",
+    "cases/case-002.json",
+    "cases/case-003.json",
+    "cases/case-004.json",
+    "cases/case-005.json",
+    "cases/case-006.json"
+  ],
+  "files": {
+    "cases/case-001.json": "cff4a13728fdd370977bf00cabb484fa418084b47d2b26e80db8b3ff874db311",
+    "cases/case-002.json": "84aa8b7bac4662397971b7e643a029c751fb24608f9ce61bb55946d9a720be46",
+    "cases/case-003.json": "00131065de165f95ee7a45c3d575ee1995b42c830b3ea88a8191dc033f4f1a44",
+    "cases/case-004.json": "9d48fc9187160938683de79d052bf834128dbacac39dcdcdd45e58edae6dfa61",
+    "cases/case-005.json": "358e67604d9534aa0ef80e0165364ea01342f83acf0550b78ebf2cb6c22f113d",
+    "cases/case-006.json": "18c8c10edb76ecee5b9f400564c78886da9871bb00e1217c0437a928d0c779e9",
+    "data/adb_terms.json": "50bdb628d0a67d14966d16bda35b4ab9d6b2fc473bdec42c9a664db10cc2b69b",
+    "data/audit.json": "11c3931d374b53a7091a88dcea5184660ffe13bf159146f5327bcaaee9690cb8",
+    "data/flood.npz": "a843078285068838db0a7b83ba96aaecebceb4e69ba9774b99395a6e216bbaa1",
+    "data/seismic.npz": "ec8a93254dc4d9471792941022941d6ed5d76ab80e8950c21624393743a4bd25"
+  }
+}
