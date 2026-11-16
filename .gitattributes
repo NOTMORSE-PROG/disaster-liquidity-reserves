@@ -1,0 +1,6 @@
+* text=auto eol=lf
+# The organizer's benchmark is vendored byte-for-byte and checked against SHA256SUMS.
+benchmark/** -text
+*.npz binary
+*.png binary
+*.pdf binary

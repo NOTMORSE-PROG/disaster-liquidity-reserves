@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.venv/
+.pytest_cache/
+.ruff_cache/
+# Organizer guidance: keep private suites, seeds and reports out of Git.
+private-evaluation/
+# Scratch output from local benchmark runs; curated copies live in results/.
+runs/
+exports/
