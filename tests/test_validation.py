@@ -6,11 +6,12 @@ from liquidity_reserves.validation import Checks, synthetic_checks, two_bond_che
 def test_two_bond_proposal_figures():
     checks = Checks()
     two_bond_checks(checks)
-    statuses = {row["check"]: row["status"] for row in checks.rows}
-    # The proposal says the 16x16 grid left a $2.5m bracket at 0.5%; the grid
-    # actually resolves to $105m. That discrepancy is recorded, not hidden.
-    assert statuses.pop("16x16 grid bracket width at 0.5%") == "discrepancy"
-    assert set(statuses.values()) == {"pass"}, statuses
+    failed = {row["check"]: row["note"] for row in checks.rows if row["status"] != "pass"}
+    assert not failed
+    # The 16x16 grid reaches the same $105m as adaptive refinement; the proposal
+    # was corrected after an earlier draft said it left a $2.5m bracket.
+    grid = next(r for r in checks.rows if r["check"] == "16x16 grid result at 0.5%")
+    assert "Corrected in the proposal" in grid["note"]
 
 
 @pytest.mark.slow

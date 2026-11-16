@@ -1,8 +1,8 @@
 # Validation report
 
-Generated 2026-11-16T12:42:10+00:00 by engine 0.1.0 (full run). Mark Andrei Condino (sole applicant).
+Generated 2026-11-16T15:15:26+00:00 by engine 0.1.0 (full run). Mark Andrei Condino (sole applicant).
 
-41 of 43 checks agree with their targets.
+55 of 55 checks agree with their targets.
 
 | Group | Check | Proposal / target | Computed | Status | Note |
 |---|---|---|---|---|---|
@@ -15,7 +15,7 @@ Generated 2026-11-16T12:42:10+00:00 by engine 0.1.0 (full run). Mark Andrei Cond
 | Public two-bond example | Adaptive distribution evaluations at 0.5% | 39 | 39 | pass |  |
 | Public two-bond example | 16x16 grid distribution evaluations at 0.5% | 517 | 517 | pass |  |
 | Public two-bond example | 16x16 grid distribution evaluations at 1.5% | 517 | 517 | pass |  |
-| Public two-bond example | 16x16 grid bracket width at 0.5% | $2,500,000 (proposal: 'left a $2.5m bracket') | $0 wide ($105,000,000) | discrepancy | The 16x16 dominating-cell grid resolves 0.5% to $105,000,000. A $2.5m bracket ($105,000,000 to $107,500,000) comes from the 200x200 grid with the Poisson coupling bound instead. |
+| Public two-bond example | 16x16 grid result at 0.5% | same $105,000,000 as adaptive refinement | $0 wide ($105,000,000) | pass | Corrected in the proposal on 16 November 2026: an earlier draft said the grid left a $2.5m bracket. That bracket ($105,000,000 to $107,500,000) comes from the 200x200 grid with the Poisson coupling bound. |
 | Public two-bond example | P(payout > $80m), base | 1.205% | 1.205% | pass |  |
 | Public two-bond example | P(payout > $80m), highest feasible scenario | 1.607% | 1.607% | pass | at earthquake multiplier 2, rain share 0.25 |
 | Public two-bond example | P(payout > $80m), bounded (200x200 grid plus coupling bound) | 1.631% | 1.631% | pass | coupling allowance 2.471e-04; the adaptive cell bounds after the 0.5% refinement give 1.634% |
@@ -48,7 +48,19 @@ Generated 2026-11-16T12:42:10+00:00 by engine 0.1.0 (full run). Mark Andrei Cond
 | Resource estimate | Peak traced memory of one contraction, 20 synthetic countries | 1.58 MiB | 1.58 MiB | pass | 6,189 payout levels; tracemalloc peak during factor construction and contraction |
 | Resource estimate | Peak traced memory of one contraction, 50 synthetic countries | 3.95 MiB | 3.96 MiB | pass | 15,489 payout levels; tracemalloc peak during factor construction and contraction |
 | Benchmark | Metric checks passed (public scenarios and seeded practice cases) | 65 of 65 | 65 of 65 | pass | 13/13 cases; 130/130 team runs valid |
-| Benchmark | Largest error as a share of its allowed tolerance | 2.1e-13 | 5.15e-13 | discrepancy | Evaluator run on Linux-6.18.58.1-microsoft-standard-WSL2-x86_64-with-glibc2.39. The exact value is floating-point rounding and changes with platform and BLAS; every case stays below 1e-12 of its tolerance. |
+| Benchmark | Largest error as a share of its allowed tolerance | 5.1e-13 | 5.15e-13 | pass | Corrected in the proposal on 16 November 2026 to this evaluator run; an earlier draft quoted 2.1e-13 from a previous prototype. The value is floating-point rounding and changes with platform and BLAS; every case stays below 1e-12 of its tolerance. |
+| Quantum circuit | Two-bond circuit size | 21 qubits | 21 | pass |  |
+| Quantum circuit | Loaded outcome law vs exact joint law, 2 countries | agrees to numerical precision | max error 1.11e-15 | pass |  |
+| Quantum circuit | Payout adder and reserve flag, every outcome combination, 2 countries | all exact | 100 combinations exact | pass |  |
+| Quantum circuit | Loaded outcome law vs exact joint law, 3 countries | agrees to numerical precision | max error 1.21e-14 | pass |  |
+| Quantum circuit | Payout adder and reserve flag, every outcome combination, 3 countries | all exact | 1000 combinations exact | pass |  |
+| Quantum circuit | Full two-bond circuit vs amplitude rotation, Grover powers 0, 1, 2, 3, 5 | agrees to numerical precision | max deviation 7.89e-13 | pass |  |
+| Quantum circuit | Quantum reserve search, base assumptions, 1.5% limit | $80,000,000 | $80,000,000 | pass | 4 probes, 27,200 queries |
+| Quantum circuit | Quantum reserve search, base assumptions, 0.5% limit | $105,000,000 | $97,500,000 to $105,000,000 (bracket) | pass | 5 probes, 47,000 queries; a probe near the limit stayed undecided |
+| Quantum circuit | Interval coverage, Grover powers up to 16, 1000 repeats | at least 95% | 97.5% | pass |  |
+| Quantum circuit | Interval coverage, Grover powers up to 32, 1000 repeats | at least 95% | 97.0% | pass |  |
+| Quantum circuit | Both $87,500,000 bounds at 1.5% confirmed by quantum estimates | confirmed | True | pass | smaller reserve exceeds; dominating cells meets |
+| Quantum circuit | Qubits added per country (synthetic chains, 2 to 50 countries) | about 8 | 8.10 | pass |  |
 
 ## Reserve brackets and evaluation counts
 

@@ -1,6 +1,6 @@
 {
   "schema": "dlr-validation-v1",
-  "generated_utc": "2026-11-16T12:42:10+00:00",
+  "generated_utc": "2026-11-16T15:15:26+00:00",
   "applicant": "Mark Andrei Condino (sole applicant)",
   "engine_version": "0.1.0",
   "quick": false,
@@ -12,12 +12,9 @@
   },
   "counting_rule": "One distribution evaluation is one aggregate payout distribution. Adaptive refinement counts the base point, each distinct range corner, and a centre scenario plus a dominating model for every cell created. The k-by-k grid counts the base point, four corners and 2k^2 cell evaluations (517 for k = 16).",
   "summary": {
-    "checks": 43,
-    "passed": 41,
-    "discrepancies": [
-      "16x16 grid bracket width at 0.5%",
-      "Largest error as a share of its allowed tolerance"
-    ]
+    "checks": 55,
+    "passed": 55,
+    "discrepancies": []
   },
   "checks": [
     {
@@ -103,12 +100,12 @@
     },
     {
       "group": "Public two-bond example",
-      "check": "16x16 grid bracket width at 0.5%",
-      "proposal_target": "$2,500,000 (proposal: 'left a $2.5m bracket')",
+      "check": "16x16 grid result at 0.5%",
+      "proposal_target": "same $105,000,000 as adaptive refinement",
       "computed": 0.0,
       "computed_display": "$0 wide ($105,000,000)",
-      "status": "discrepancy",
-      "note": "The 16x16 dominating-cell grid resolves 0.5% to $105,000,000. A $2.5m bracket ($105,000,000 to $107,500,000) comes from the 200x200 grid with the Poisson coupling bound instead."
+      "status": "pass",
+      "note": "Corrected in the proposal on 16 November 2026: an earlier draft said the grid left a $2.5m bracket. That bracket ($105,000,000 to $107,500,000) comes from the 200x200 grid with the Poisson coupling bound."
     },
     {
       "group": "Public two-bond example",
@@ -425,11 +422,122 @@
     {
       "group": "Benchmark",
       "check": "Largest error as a share of its allowed tolerance",
-      "proposal_target": "2.1e-13",
+      "proposal_target": "5.1e-13",
       "computed": 5.149960319306146e-13,
       "computed_display": "5.15e-13",
-      "status": "discrepancy",
-      "note": "Evaluator run on Linux-6.18.58.1-microsoft-standard-WSL2-x86_64-with-glibc2.39. The exact value is floating-point rounding and changes with platform and BLAS; every case stays below 1e-12 of its tolerance."
+      "status": "pass",
+      "note": "Corrected in the proposal on 16 November 2026 to this evaluator run; an earlier draft quoted 2.1e-13 from a previous prototype. The value is floating-point rounding and changes with platform and BLAS; every case stays below 1e-12 of its tolerance."
+    },
+    {
+      "group": "Quantum circuit",
+      "check": "Two-bond circuit size",
+      "proposal_target": "21 qubits",
+      "computed": 21,
+      "computed_display": 21,
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Quantum circuit",
+      "check": "Loaded outcome law vs exact joint law, 2 countries",
+      "proposal_target": "agrees to numerical precision",
+      "computed": 1.1102230246251565e-15,
+      "computed_display": "max error 1.11e-15",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Quantum circuit",
+      "check": "Payout adder and reserve flag, every outcome combination, 2 countries",
+      "proposal_target": "all exact",
+      "computed": 100,
+      "computed_display": "100 combinations exact",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Quantum circuit",
+      "check": "Loaded outcome law vs exact joint law, 3 countries",
+      "proposal_target": "agrees to numerical precision",
+      "computed": 1.2101430968414206e-14,
+      "computed_display": "max error 1.21e-14",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Quantum circuit",
+      "check": "Payout adder and reserve flag, every outcome combination, 3 countries",
+      "proposal_target": "all exact",
+      "computed": 1000,
+      "computed_display": "1000 combinations exact",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Quantum circuit",
+      "check": "Full two-bond circuit vs amplitude rotation, Grover powers 0, 1, 2, 3, 5",
+      "proposal_target": "agrees to numerical precision",
+      "computed": 7.893685705084863e-13,
+      "computed_display": "max deviation 7.89e-13",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Quantum circuit",
+      "check": "Quantum reserve search, base assumptions, 1.5% limit",
+      "proposal_target": "$80,000,000",
+      "computed": 80000000.0,
+      "computed_display": "$80,000,000",
+      "status": "pass",
+      "note": "4 probes, 27,200 queries"
+    },
+    {
+      "group": "Quantum circuit",
+      "check": "Quantum reserve search, base assumptions, 0.5% limit",
+      "proposal_target": "$105,000,000",
+      "computed": [
+        97500000.0,
+        105000000.0
+      ],
+      "computed_display": "$97,500,000 to $105,000,000 (bracket)",
+      "status": "pass",
+      "note": "5 probes, 47,000 queries; a probe near the limit stayed undecided"
+    },
+    {
+      "group": "Quantum circuit",
+      "check": "Interval coverage, Grover powers up to 16, 1000 repeats",
+      "proposal_target": "at least 95%",
+      "computed": 0.975,
+      "computed_display": "97.5%",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Quantum circuit",
+      "check": "Interval coverage, Grover powers up to 32, 1000 repeats",
+      "proposal_target": "at least 95%",
+      "computed": 0.97,
+      "computed_display": "97.0%",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Quantum circuit",
+      "check": "Both $87,500,000 bounds at 1.5% confirmed by quantum estimates",
+      "proposal_target": "confirmed",
+      "computed": true,
+      "computed_display": true,
+      "status": "pass",
+      "note": "smaller reserve exceeds; dominating cells meets"
+    },
+    {
+      "group": "Quantum circuit",
+      "check": "Qubits added per country (synthetic chains, 2 to 50 countries)",
+      "proposal_target": "about 8",
+      "computed": 8.104166666666666,
+      "computed_display": "8.10",
+      "status": "pass",
+      "note": ""
     }
   ],
   "reserve_table": [

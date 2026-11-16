@@ -115,15 +115,15 @@ def two_bond_checks(checks: Checks) -> dict:
     grid_gap = grid_strict.upper_units - grid_strict.lower_units
     checks.add(
         group,
-        "16x16 grid bracket width at 0.5%",
-        "$2,500,000 (proposal: 'left a $2.5m bracket')",
+        "16x16 grid result at 0.5%",
+        "same $105,000,000 as adaptive refinement",
         grid_gap / 400,
-        grid_gap == usd_to_units(2_500_000),
-        "The 16x16 dominating-cell grid resolves 0.5% to "
-        f"{_bracket_text(grid_strict)}. A $2.5m bracket "
+        grid_gap == 0 and grid_strict.upper_units == strict.upper_units,
+        "Corrected in the proposal on 16 November 2026: an earlier draft said the grid left a "
+        "$2.5m bracket. That bracket "
         f"({format_usd(envelope['reserves'][1]['lower_units'])} to "
         f"{format_usd(envelope['reserves'][1]['upper_units'])}) comes from the 200x200 grid "
-        "with the Poisson coupling bound instead.",
+        "with the Poisson coupling bound.",
         f"{format_usd(grid_gap)} wide ({_bracket_text(grid_strict)})",
     )
 
@@ -425,15 +425,127 @@ def benchmark_checks(checks: Checks, summary_path: Path):
     checks.add(
         "Benchmark",
         "Largest error as a share of its allowed tolerance",
-        "2.1e-13",
+        "5.1e-13",
         worst,
-        worst is not None and f"{worst:.1e}" == "2.1e-13",
-        f"Evaluator run on {summary['practice']['platform'] if 'practice' in summary else 'n/a'}. "
-        "The exact value is floating-point rounding and changes with platform and BLAS; "
-        "every case stays below 1e-12 of its tolerance.",
+        worst is not None and f"{worst:.1e}" == "5.1e-13",
+        "Corrected in the proposal on 16 November 2026 to this evaluator run; an earlier draft "
+        "quoted 2.1e-13 from a previous prototype. The value is floating-point rounding and "
+        "changes with platform and BLAS; every case stays below 1e-12 of its tolerance.",
         display=f"{worst:.2e}" if worst is not None else "n/a",
     )
     return summary
+
+
+def quantum_checks(checks: Checks, path: Path):
+    """Claims about the tensor-chain quantum circuit, from the recorded quantum study."""
+    group = "Quantum circuit"
+    if not path.is_file():
+        checks.add(
+            group,
+            "Recorded quantum study",
+            "present",
+            None,
+            False,
+            f"No quantum study at {path}; run python -m liquidity_reserves.quantum.",
+        )
+        return None
+    study = json.loads(path.read_text(encoding="utf-8"))
+    if "verification" not in study:
+        checks.add(
+            group,
+            "Recorded quantum study",
+            "tensor-chain circuit",
+            None,
+            False,
+            "The recorded study predates the tensor-chain circuit; rerun it.",
+        )
+        return None
+    two = study["verification"]["two_countries"]
+    three = study["verification"]["three_countries"]
+    checks.add(group, "Two-bond circuit size", "21 qubits", two["qubits"], two["qubits"] == 21)
+    for label, row in (("2 countries", two), ("3 countries", three)):
+        checks.add(
+            group,
+            f"Loaded outcome law vs exact joint law, {label}",
+            "agrees to numerical precision",
+            row["loading_max_error"],
+            row["loading_max_error"] < 1e-12,
+            display=f"max error {row['loading_max_error']:.2e}",
+        )
+        arithmetic = row["arithmetic"]
+        checks.add(
+            group,
+            f"Payout adder and reserve flag, every outcome combination, {label}",
+            "all exact",
+            arithmetic["combinations"],
+            arithmetic["register_correct"] and arithmetic["flag_correct"],
+            display=f"{arithmetic['combinations']} combinations exact",
+        )
+    checks.add(
+        group,
+        "Full two-bond circuit vs amplitude rotation, Grover powers "
+        + ", ".join(str(k) for k in two["full_circuit_powers"]),
+        "agrees to numerical precision",
+        two["full_circuit_max_error"],
+        two["full_circuit_max_error"] < 1e-9,
+        display=f"max deviation {two['full_circuit_max_error']:.2e}",
+    )
+    for search in study["reserve_search"]:
+        limit = search["risk_limit"]
+        classical = search["classical_reserve_usd"]
+        if search["resolved"]:
+            passed = search["reserve_usd"] == classical
+            shown = format_usd(usd_to_units(search["reserve_usd"]))
+        else:
+            passed = search["lower_usd"] <= classical <= search["upper_usd"]
+            shown = (
+                f"{format_usd(usd_to_units(search['lower_usd']))} to "
+                f"{format_usd(usd_to_units(search['upper_usd']))} (bracket)"
+            )
+        checks.add(
+            group,
+            f"Quantum reserve search, base assumptions, {100 * limit:g}% limit",
+            format_usd(usd_to_units(classical)),
+            search["reserve_usd"]
+            if search["resolved"]
+            else [search["lower_usd"], search["upper_usd"]],
+            passed,
+            f"{len(search['probes'])} probes, {search['queries']:,} queries"
+            + ("" if search["resolved"] else "; a probe near the limit stayed undecided"),
+            shown,
+        )
+    for row in study.get("interval_coverage", []):
+        checks.add(
+            group,
+            f"Interval coverage, Grover powers up to {row['max_power']}, {row['repeats']} repeats",
+            "at least 95%",
+            row["coverage"],
+            row["coverage"] >= row["nominal"],
+            display=f"{100 * row['coverage']:.1f}%",
+        )
+    cert = study["bound_certification"]
+    checks.add(
+        group,
+        f"Both {format_usd(usd_to_units(cert['upper_usd']))} bounds at 1.5% confirmed by "
+        "quantum estimates",
+        "confirmed",
+        cert["certified"],
+        cert["certified"],
+        f"smaller reserve {cert['witness']['verdict']}; dominating cells "
+        + ", ".join(c["verdict"] for c in cert["dominating_cells"]),
+    )
+    synthetic = {r["countries"]: r for r in study["resources"] if r["case"].startswith("Synth")}
+    if 2 in synthetic and 50 in synthetic:
+        per_country = (synthetic[50]["qubits"] - synthetic[2]["qubits"]) / 48
+        checks.add(
+            group,
+            "Qubits added per country (synthetic chains, 2 to 50 countries)",
+            "about 8",
+            per_country,
+            7.5 <= per_country <= 8.5,
+            display=f"{per_country:.2f}",
+        )
+    return study
 
 
 def run(quick: bool = False, benchmark_summary: Path | None = None) -> dict:
@@ -462,6 +574,7 @@ def run(quick: bool = False, benchmark_summary: Path | None = None) -> dict:
     benchmark = benchmark_checks(
         checks, benchmark_summary or results_dir() / "benchmark" / "summary.json"
     )
+    quantum_checks(checks, results_dir() / "quantum.json")
     loose, strict = two_bond["loose"], two_bond["strict"]
     return {
         "schema": "dlr-validation-v1",
