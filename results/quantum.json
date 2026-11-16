@@ -1,6 +1,6 @@
 {
-  "schema": "dlr-quantum-v1",
-  "scope": "Ideal noiseless statevector simulation on a CPU; no hardware, no speed-up claim.",
+  "schema": "dlr-quantum-v2",
+  "scope": "Simulated, noiseless quantum circuits on a CPU. No quantum hardware was used and no speed-up over the exact classical contraction is claimed.",
   "query_study": {
     "probability": 0.012046720907534038,
     "amount_usd": 80000000.0,
@@ -84,111 +84,678 @@
       }
     ]
   },
+  "verification": {
+    "two_countries": {
+      "qubits": 21,
+      "loading_max_error": 1.1102230246251565e-15,
+      "arithmetic": {
+        "combinations": 100,
+        "register_correct": true,
+        "flag_correct": true,
+        "worst_basis_leakage": 2.6645352591003757e-15
+      },
+      "full_circuit_powers": [
+        0,
+        1,
+        2,
+        3,
+        5
+      ],
+      "full_circuit_probabilities": [
+        0.012046720907533282,
+        0.10496549673070447,
+        0.27310893857106205,
+        0.4844582375632663,
+        0.8752255998480313
+      ],
+      "theory": [
+        0.012046720907534038,
+        0.10496549673069223,
+        0.2731089385709789,
+        0.48445823756302503,
+        0.8752255998472419
+      ],
+      "full_circuit_max_error": 7.893685705084863e-13
+    },
+    "three_countries": {
+      "qubits": 33,
+      "loading_max_error": 1.2101430968414206e-14,
+      "arithmetic": {
+        "combinations": 1000,
+        "register_correct": true,
+        "flag_correct": true,
+        "worst_basis_leakage": 4.218847493575595e-15
+      }
+    }
+  },
+  "interval_coverage": [
+    {
+      "max_power": 16,
+      "repeats": 1000,
+      "coverage": 0.975,
+      "median_width": 0.001782566757293826,
+      "nominal": 0.95
+    },
+    {
+      "max_power": 32,
+      "repeats": 1000,
+      "coverage": 0.97,
+      "median_width": 0.0009105894586964002,
+      "nominal": 0.95
+    }
+  ],
+  "full_circuit_estimate": {
+    "reserve_usd": 80000000.0,
+    "estimate": 0.011301140760084044,
+    "ci95": [
+      0.01038859468911711,
+      0.012119620358106209
+    ],
+    "powers": [
+      0,
+      1,
+      2,
+      4,
+      8,
+      16
+    ],
+    "shots_per_power": 100,
+    "hits": [
+      2,
+      11,
+      26,
+      71,
+      94,
+      12
+    ],
+    "queries": 6800,
+    "qubits": 21,
+    "exact": 0.01204672090753404
+  },
+  "reserve_search": [
+    {
+      "point": [
+        1.0,
+        0.25
+      ],
+      "risk_limit": 0.015,
+      "reserve_usd": 80000000.0,
+      "lower_usd": 80000000.0,
+      "upper_usd": 80000000.0,
+      "resolved": true,
+      "probes": [
+        {
+          "reserve_usd": 72500000.0,
+          "estimate": 0.016571264533124942,
+          "ci95": [
+            0.01561976080549386,
+            0.017689903610913944
+          ],
+          "powers": [
+            0,
+            1,
+            2,
+            4,
+            8,
+            16
+          ],
+          "shots_per_power": 100,
+          "hits": [
+            2,
+            10,
+            36,
+            82,
+            66,
+            82
+          ],
+          "queries": 6800,
+          "qubits": 21,
+          "verdict": "exceeds"
+        },
+        {
+          "reserve_usd": 115000000.0,
+          "estimate": 0.003369318834586778,
+          "ci95": [
+            0.003058824005264771,
+            0.004032642805506157
+          ],
+          "powers": [
+            0,
+            1,
+            2,
+            4,
+            8,
+            16
+          ],
+          "shots_per_power": 100,
+          "hits": [
+            0,
+            3,
+            5,
+            22,
+            66,
+            86
+          ],
+          "queries": 6800,
+          "qubits": 21,
+          "verdict": "meets"
+        },
+        {
+          "reserve_usd": 90000000.0,
+          "estimate": 0.005850256066796596,
+          "ci95": [
+            0.005294522314320249,
+            0.006286824589520318
+          ],
+          "powers": [
+            0,
+            1,
+            2,
+            4,
+            8,
+            16
+          ],
+          "shots_per_power": 100,
+          "hits": [
+            0,
+            2,
+            16,
+            41,
+            97,
+            37
+          ],
+          "queries": 6800,
+          "qubits": 21,
+          "verdict": "meets"
+        },
+        {
+          "reserve_usd": 80000000.0,
+          "estimate": 0.011600734492307854,
+          "ci95": [
+            0.010901472051463001,
+            0.012645983409347755
+          ],
+          "powers": [
+            0,
+            1,
+            2,
+            4,
+            8,
+            16
+          ],
+          "shots_per_power": 100,
+          "hits": [
+            1,
+            13,
+            30,
+            61,
+            94,
+            18
+          ],
+          "queries": 6800,
+          "qubits": 21,
+          "verdict": "meets"
+        }
+      ],
+      "queries": 27200,
+      "classical_reserve_usd": 80000000.0
+    },
+    {
+      "point": [
+        1.0,
+        0.25
+      ],
+      "risk_limit": 0.005,
+      "reserve_usd": null,
+      "lower_usd": 97500000.0,
+      "upper_usd": 105000000.0,
+      "resolved": false,
+      "probes": [
+        {
+          "reserve_usd": 72500000.0,
+          "estimate": 0.016797963205965598,
+          "ci95": [
+            0.015708419435684445,
+            0.017784147043897473
+          ],
+          "powers": [
+            0,
+            1,
+            2,
+            4,
+            8,
+            16
+          ],
+          "shots_per_power": 100,
+          "hits": [
+            2,
+            19,
+            36,
+            86,
+            66,
+            83
+          ],
+          "queries": 6800,
+          "qubits": 21,
+          "verdict": "exceeds"
+        },
+        {
+          "reserve_usd": 115000000.0,
+          "estimate": 0.0030766178656292157,
+          "ci95": [
+            0.0026404428463407863,
+            0.003479772502771375
+          ],
+          "powers": [
+            0,
+            1,
+            2,
+            4,
+            8,
+            16
+          ],
+          "shots_per_power": 100,
+          "hits": [
+            0,
+            3,
+            9,
+            21,
+            72,
+            95
+          ],
+          "queries": 6800,
+          "qubits": 21,
+          "verdict": "meets"
+        },
+        {
+          "reserve_usd": 90000000.0,
+          "estimate": 0.005551894888007495,
+          "ci95": [
+            0.005185871867422084,
+            0.005875544089299414
+          ],
+          "powers": [
+            0,
+            1,
+            2,
+            4,
+            8,
+            16,
+            32
+          ],
+          "shots_per_power": 100,
+          "hits": [
+            1,
+            2,
+            15,
+            31,
+            94,
+            34,
+            99
+          ],
+          "queries": 13300,
+          "qubits": 21,
+          "verdict": "exceeds"
+        },
+        {
+          "reserve_usd": 105000000.0,
+          "estimate": 0.003628654771001361,
+          "ci95": [
+            0.0032455814484257184,
+            0.004231097933457038
+          ],
+          "powers": [
+            0,
+            1,
+            2,
+            4,
+            8,
+            16
+          ],
+          "shots_per_power": 100,
+          "hits": [
+            0,
+            1,
+            8,
+            23,
+            73,
+            82
+          ],
+          "queries": 6800,
+          "qubits": 21,
+          "verdict": "meets"
+        },
+        {
+          "reserve_usd": 97500000.0,
+          "estimate": 0.00527704262042832,
+          "ci95": [
+            0.004886540547520258,
+            0.005783558214646663
+          ],
+          "powers": [
+            0,
+            1,
+            2,
+            4,
+            8,
+            16,
+            32
+          ],
+          "shots_per_power": 100,
+          "hits": [
+            0,
+            4,
+            7,
+            40,
+            86,
+            41,
+            100
+          ],
+          "queries": 13300,
+          "qubits": 21,
+          "verdict": "ambiguous"
+        }
+      ],
+      "queries": 47000,
+      "classical_reserve_usd": 105000000.0
+    }
+  ],
+  "bound_certification": {
+    "risk_limit": 0.015,
+    "lower_usd": 87500000.0,
+    "upper_usd": 87500000.0,
+    "witness": {
+      "reserve_usd": 85000000.0,
+      "estimate": 0.016110501134112897,
+      "ci95": [
+        0.015768574638820646,
+        0.01654546398994679
+      ],
+      "powers": [
+        0,
+        1,
+        2,
+        4,
+        8,
+        16,
+        32
+      ],
+      "shots_per_power": 100,
+      "hits": [
+        2,
+        8,
+        28,
+        81,
+        69,
+        84,
+        86
+      ],
+      "queries": 13300,
+      "qubits": 21,
+      "point": [
+        2.0,
+        0.25
+      ],
+      "exact": 0.016066409986690625,
+      "verdict": "exceeds"
+    },
+    "dominating_cells": [
+      {
+        "reserve_usd": 87500000.0,
+        "estimate": 0.01025797251761027,
+        "ci95": [
+          0.008027502134264133,
+          0.010709547837263949
+        ],
+        "powers": [
+          0,
+          1,
+          2,
+          4,
+          8,
+          16,
+          32
+        ],
+        "shots_per_power": 100,
+        "hits": [
+          0,
+          7,
+          30,
+          66,
+          99,
+          5,
+          9
+        ],
+        "queries": 13300,
+        "qubits": 21,
+        "cell": {
+          "earthquake_multiplier": [
+            0.0,
+            2.0
+          ],
+          "rain_share": [
+            0.0,
+            0.25
+          ]
+        },
+        "exact": 0.010230896164238225,
+        "verdict": "meets"
+      }
+    ],
+    "certified": true
+  },
   "resources": [
     {
-      "case": "Public two-bond, base, P(L > $80m)",
+      "countries": 2,
+      "case": "Public two-bond",
       "probability": 0.01204672090753404,
-      "qubits": 6,
-      "cx_loading": 58,
-      "cx_per_grover_iterate": 200,
-      "depth_per_grover_iterate": 615,
+      "reserve_usd": 80000000.0,
+      "qubits": 21,
+      "cx_loading": 736,
+      "cx_per_grover_iterate": 3788,
+      "depth_per_grover_iterate": 9415,
       "epsilon": 0.001,
       "qae_grover_depth": 1024,
       "qae_queries_95": 9216,
       "monte_carlo_queries_95": 45720,
-      "cx_deepest_circuit": 204800
+      "cx_deepest_circuit": 3878912
     },
     {
-      "case": "Public two-bond, base, P(L > $80m)",
+      "countries": 2,
+      "case": "Public two-bond",
       "probability": 0.01204672090753404,
-      "qubits": 6,
-      "cx_loading": 58,
-      "cx_per_grover_iterate": 200,
-      "depth_per_grover_iterate": 615,
+      "reserve_usd": 80000000.0,
+      "qubits": 21,
+      "cx_loading": 736,
+      "cx_per_grover_iterate": 3788,
+      "depth_per_grover_iterate": 9415,
       "epsilon": 0.0001,
       "qae_grover_depth": 8192,
       "qae_queries_95": 73728,
       "monte_carlo_queries_95": 4571950,
-      "cx_deepest_circuit": 1638400
+      "cx_deepest_circuit": 31031296
     },
     {
-      "case": "Synthetic 5 countries, base",
+      "countries": 2,
+      "case": "Synthetic 2 countries",
+      "probability": 0.014350942941835925,
+      "reserve_usd": 74250000.0,
+      "qubits": 24,
+      "cx_loading": 890,
+      "cx_per_grover_iterate": 4542,
+      "depth_per_grover_iterate": 9200,
+      "epsilon": 0.001,
+      "qae_grover_depth": 1024,
+      "qae_queries_95": 9216,
+      "monte_carlo_queries_95": 54338,
+      "cx_deepest_circuit": 4651008
+    },
+    {
+      "countries": 2,
+      "case": "Synthetic 2 countries",
+      "probability": 0.014350942941835925,
+      "reserve_usd": 74250000.0,
+      "qubits": 24,
+      "cx_loading": 890,
+      "cx_per_grover_iterate": 4542,
+      "depth_per_grover_iterate": 9200,
+      "epsilon": 0.0001,
+      "qae_grover_depth": 8192,
+      "qae_queries_95": 73728,
+      "monte_carlo_queries_95": 5433741,
+      "cx_deepest_circuit": 37208064
+    },
+    {
+      "countries": 3,
+      "case": "Synthetic 3 countries",
+      "probability": 0.01487463682842289,
+      "reserve_usd": 92000000.0,
+      "qubits": 33,
+      "cx_loading": 4883,
+      "cx_per_grover_iterate": 13764,
+      "depth_per_grover_iterate": 38633,
+      "epsilon": 0.001,
+      "qae_grover_depth": 1024,
+      "qae_queries_95": 9216,
+      "monte_carlo_queries_95": 56291,
+      "cx_deepest_circuit": 14094336
+    },
+    {
+      "countries": 3,
+      "case": "Synthetic 3 countries",
+      "probability": 0.01487463682842289,
+      "reserve_usd": 92000000.0,
+      "qubits": 33,
+      "cx_loading": 4883,
+      "cx_per_grover_iterate": 13764,
+      "depth_per_grover_iterate": 38633,
+      "epsilon": 0.0001,
+      "qae_grover_depth": 8192,
+      "qae_queries_95": 73728,
+      "monte_carlo_queries_95": 5629037,
+      "cx_deepest_circuit": 112754688
+    },
+    {
+      "countries": 5,
+      "case": "Synthetic 5 countries",
       "probability": 0.013537021164240475,
-      "qubits": 11,
-      "cx_loading": 2037,
-      "cx_per_grover_iterate": 4526,
-      "depth_per_grover_iterate": 20574,
+      "reserve_usd": 135000000.0,
+      "qubits": 50,
+      "cx_loading": 12843,
+      "cx_per_grover_iterate": 31638,
+      "depth_per_grover_iterate": 98120,
       "epsilon": 0.001,
       "qae_grover_depth": 1024,
       "qae_queries_95": 9216,
       "monte_carlo_queries_95": 51298,
-      "cx_deepest_circuit": 4634624
+      "cx_deepest_circuit": 32397312
     },
     {
-      "case": "Synthetic 5 countries, base",
+      "countries": 5,
+      "case": "Synthetic 5 countries",
       "probability": 0.013537021164240475,
-      "qubits": 11,
-      "cx_loading": 2037,
-      "cx_per_grover_iterate": 4526,
-      "depth_per_grover_iterate": 20574,
+      "reserve_usd": 135000000.0,
+      "qubits": 50,
+      "cx_loading": 12843,
+      "cx_per_grover_iterate": 31638,
+      "depth_per_grover_iterate": 98120,
       "epsilon": 0.0001,
       "qae_grover_depth": 8192,
       "qae_queries_95": 73728,
       "monte_carlo_queries_95": 5129796,
-      "cx_deepest_circuit": 37076992
+      "cx_deepest_circuit": 259178496
     },
     {
-      "case": "Synthetic 10 countries, base",
+      "countries": 10,
+      "case": "Synthetic 10 countries",
       "probability": 0.014936355478492641,
-      "qubits": 13,
-      "cx_loading": 8179,
-      "cx_per_grover_iterate": 17074,
-      "depth_per_grover_iterate": 72840,
+      "reserve_usd": 185000000.0,
+      "qubits": 91,
+      "cx_loading": 32674,
+      "cx_per_grover_iterate": 76804,
+      "depth_per_grover_iterate": 246902,
       "epsilon": 0.001,
       "qae_grover_depth": 1024,
       "qae_queries_95": 9216,
       "monte_carlo_queries_95": 56521,
-      "cx_deepest_circuit": 17483776
+      "cx_deepest_circuit": 78647296
     },
     {
-      "case": "Synthetic 10 countries, base",
+      "countries": 10,
+      "case": "Synthetic 10 countries",
       "probability": 0.014936355478492641,
-      "qubits": 13,
-      "cx_loading": 8179,
-      "cx_per_grover_iterate": 17074,
-      "depth_per_grover_iterate": 72840,
+      "reserve_usd": 185000000.0,
+      "qubits": 91,
+      "cx_loading": 32674,
+      "cx_per_grover_iterate": 76804,
+      "depth_per_grover_iterate": 246902,
       "epsilon": 0.0001,
       "qae_grover_depth": 8192,
       "qae_queries_95": 73728,
       "monte_carlo_queries_95": 5652039,
-      "cx_deepest_circuit": 139870208
+      "cx_deepest_circuit": 629178368
     },
     {
-      "case": "Synthetic 20 countries, base",
+      "countries": 20,
+      "case": "Synthetic 20 countries",
       "probability": 0.014923866678920737,
-      "qubits": 14,
-      "cx_loading": 16370,
-      "cx_per_grover_iterate": 33592,
-      "depth_per_grover_iterate": 154990,
+      "reserve_usd": 278250000.0,
+      "qubits": 172,
+      "cx_loading": 72380,
+      "cx_per_grover_iterate": 165352,
+      "depth_per_grover_iterate": 543183,
       "epsilon": 0.001,
       "qae_grover_depth": 1024,
       "qae_queries_95": 9216,
       "monte_carlo_queries_95": 56474,
-      "cx_deepest_circuit": 34398208
+      "cx_deepest_circuit": 169320448
     },
     {
-      "case": "Synthetic 20 countries, base",
+      "countries": 20,
+      "case": "Synthetic 20 countries",
       "probability": 0.014923866678920737,
-      "qubits": 14,
-      "cx_loading": 16370,
-      "cx_per_grover_iterate": 33592,
-      "depth_per_grover_iterate": 154990,
+      "reserve_usd": 278250000.0,
+      "qubits": 172,
+      "cx_loading": 72380,
+      "cx_per_grover_iterate": 165352,
+      "depth_per_grover_iterate": 543183,
       "epsilon": 0.0001,
       "qae_grover_depth": 8192,
       "qae_queries_95": 73728,
       "monte_carlo_queries_95": 5647385,
-      "cx_deepest_circuit": 275185664
+      "cx_deepest_circuit": 1354563584
+    },
+    {
+      "countries": 50,
+      "case": "Synthetic 50 countries",
+      "probability": 0.014994971072143912,
+      "reserve_usd": 513250000.0,
+      "qubits": 413,
+      "cx_loading": 191508,
+      "cx_per_grover_iterate": 435688,
+      "depth_per_grover_iterate": 1433426,
+      "epsilon": 0.001,
+      "qae_grover_depth": 1024,
+      "qae_queries_95": 9216,
+      "monte_carlo_queries_95": 56739,
+      "cx_deepest_circuit": 446144512
+    },
+    {
+      "countries": 50,
+      "case": "Synthetic 50 countries",
+      "probability": 0.014994971072143912,
+      "reserve_usd": 513250000.0,
+      "qubits": 413,
+      "cx_loading": 191508,
+      "cx_per_grover_iterate": 435688,
+      "depth_per_grover_iterate": 1433426,
+      "epsilon": 0.0001,
+      "qae_grover_depth": 8192,
+      "qae_queries_95": 73728,
+      "monte_carlo_queries_95": 5673882,
+      "cx_deepest_circuit": 3569156096
     }
   ],
-  "compiler": "Qiskit transpile to rz/sx/x/cx, optimization level 1, all-to-all coupling"
+  "simulator": "Qiskit Aer 0.17.2 statevector, every qubit simulated, seeded shots",
+  "compiler": "Qiskit 2.2.3 transpile to rz/sx/x/cx, optimization level 1, seed 7, all-to-all connectivity"
 }
