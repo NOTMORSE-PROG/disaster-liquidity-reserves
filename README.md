@@ -15,6 +15,9 @@ sufficient.
 - **Engine** (`src/liquidity_reserves`): capped payout model; quantum-inspired
   tensor-network (matrix-product) contraction on a CPU with exact monetary amounts;
   adaptive refinement of reserve bounds; an independent state-space solver for checks.
+- **Quantum algorithm** (`quantum_chain.py`): the same tensors loaded into a circuit,
+  with amplitude estimation of the shortfall probability and a quantum reserve search,
+  verified on a simulator.
 - **Benchmark worker** (`worker.py`): the organizer's evaluation-v1 request/result
   contract as a `classical_cpu` entry for both public tracks.
 - **ReserveBound app** (`python -m liquidity_reserves.app`): a local decision dashboard
@@ -46,7 +49,7 @@ python -m pip install -e .
 
 `requirements.txt` pins the versions used for the recorded results (numpy 1.26.4,
 scipy 1.15.3). The app uses only the Python standard library on top of those. For the
-optional circuit resource counts, also run
+quantum algorithm (circuits, simulation and resource counts), also run
 `python -m pip install -r requirements-quantum.txt`.
 
 ## Run the app
@@ -65,7 +68,7 @@ countries; longer chains use the Calculate button).
 | Decision | Reserve to hold, base reserve, dependence uplift and proof cost; why a smaller reserve falls short and why the upper amount is enough; exceedance curves; a map of the reserve needed across the shared-shock range with the refinement cells; each country's share of a shortfall; the regional chain; assumptions and live checks |
 | Scenarios | Reserve against the risk limit, and pinned scenarios compared side by side |
 | Evidence | Official evaluator results against the organizer's classical baselines, every proposal figure recomputed, evaluation counts and scaling |
-| Method | How the model, contraction and bounds work; amplitude estimation of P(payout > reserve) on an ideal simulator against Monte Carlo; quantum resource counts |
+| Method | How the model, contraction and bounds work; the quantum circuit built from the same tensors, its verification and the reserve decision reached with it; query scaling against Monte Carlo; quantum resource counts |
 
 Export offers a print-ready PDF report (A4, through the browser's Save as PDF), JSON
 data and a Markdown summary. Each contains the inputs, the reserve bounds, the
@@ -79,20 +82,44 @@ python -m pytest -m "not slow"
 ruff check . && ruff format --check .
 ```
 
-## Quantum amplitude-estimation check
+## Quantum algorithm
+
+The tensor chain maps directly to a quantum circuit (`src/liquidity_reserves/quantum_chain.py`):
+
+1. each neighbouring pair gets a 4-qubit register holding its shared earthquake count and
+   shared rain event, prepared with amplitudes equal to the square roots of their
+   probabilities;
+2. each country gets a 4-qubit outcome register prepared conditionally on its two pair
+   registers from that country's tensor, so the outcome registers carry the exact joint law;
+3. a Fourier-space (Draper) adder sums the payouts and subtracts the reserve plus one
+   payout step, and the sign bit sets a flag when payouts are strictly above the reserve;
+4. Grover powers amplify the flag, and maximum-likelihood amplitude estimation turns the
+   counts into P(payout > reserve).
+
+Intervals combine exact Clopper-Pearson intervals across Grover powers (Bonferroni), so
+their coverage is at least 95% by construction; 1,000 repeated runs measured 97.0% to
+97.5%. Recorded results, all on simulators:
+
+| Check | Result |
+|---|---|
+| Two-bond circuit | 21 qubits; loaded law matches the exact joint law to 1.1e-15 |
+| Three overlapping countries | 33 qubits; loaded law matches to 1.2e-14 |
+| Payout adder and reserve flag | exact for all 100 (two countries) and 1,000 (three countries) outcome combinations |
+| Full 21-qubit circuit, Grover powers 0 to 5 | matches the amplitude rotation to 7.9e-13 |
+| Quantum reserve search, base assumptions | $80m at 1.5% (matches the classical engine); $97.5m to $105m at 0.5% (a probe 0.03 points from the limit stays undecided; the classical $105m lies inside) |
+| Range bounds at 1.5% | both $87.5m bounds confirmed by quantum estimates |
+| Circuit size | 24 to 413 qubits for 2 to 50 synthetic countries, about 8 per country |
 
 ```sh
-python -m pip install -e ".[quantum]"   # Qiskit, only needed to compile circuits
-python -m liquidity_reserves.quantum    # writes results/quantum.json
+python -m pip install -r requirements-quantum.txt
+python -m liquidity_reserves.quantum    # about 20 minutes; writes results/quantum.json
 ```
 
-A payout register holds the aggregate payout law, a flag marks payouts above the
-reserve, and maximum-likelihood amplitude estimation recovers P(payout > reserve) from
-Grover-amplified counts. It runs as an ideal noiseless statevector simulation on the CPU
-and compares query counts with Monte Carlo. The law is loaded from the classical
-contraction, so this checks the estimator, its query scaling and the circuit resources
-(qubits, CX count, depth) for a hardware run; it is not a speed-up claim. The app runs the
-simulation without Qiskit; Qiskit is used only for the compiled resource counts.
+Scope: the circuits run on Qiskit Aer's statevector simulator with every qubit simulated
+and no noise. No quantum hardware was used. Amplitude estimation needs quadratically
+fewer model queries than Monte Carlo for the same precision, but it is not faster than
+the exact classical contraction at these sizes, and a 0.1% estimate needs Grover depth
+1,024, which calls for fault-tolerant hardware.
 
 ## Validate the proposal figures
 
@@ -140,6 +167,7 @@ python worker.py --request request.json --output result.json
 | Synthetic chain, 5 / 10 / 20 countries, 1.5% | USD 136.25m / 191.25m-191.5m / 289m-290m |
 | Contraction vs organizer's exact reference and independent state-space solver | agree to < 1e-15 |
 | Amplitude estimation vs Monte Carlo, P(L > $80m), 103,200 queries (ideal simulator) | RMSE 2.8e-5 vs 3.4e-4 |
+| Quantum reserve search on the full simulated circuit, 1.5% | $80m, matching the classical engine |
 
 ADB targets are term probabilities and USD over the bond term; World Bank targets are
 annual event rates and USD per year. They are computed and reported separately.
@@ -160,19 +188,20 @@ Ubuntu and Windows with Python 3.10 and 3.12.
 |---|---|
 | `requirements.txt` | numpy 1.26.4, scipy 1.15.3 (the engine, worker and app need nothing else) |
 | `requirements-dev.txt` | adds pytest 9.2.0 and ruff 0.17.5 |
-| `requirements-quantum.txt` | adds Qiskit 2.2.3 and its dependencies, only to compile circuits for resource counts |
+| `requirements-quantum.txt` | adds Qiskit 2.2.3, Qiskit Aer 0.17.2 and their dependencies, to build, simulate and compile the quantum circuits |
 | `benchmark/pyproject.toml` | the organizer's package (`qjlb` 0.5.0), vendored unmodified |
 
 **Classical computation.** The reserve engine, the benchmark worker and all recorded
 reserve figures run on the CPU. The tensor-network contraction is the quantum-inspired
 part. The benchmark entry is declared `classical_cpu` with zero shots and qubits.
 
-**Simulator.** The amplitude-estimation check uses an ideal, noiseless statevector
-simulation written in NumPy (`src/liquidity_reserves/quantum.py`): 6 qubits for the
-public two-bond case and up to 14 qubits for 20 synthetic countries, with no noise model
-and no error mitigation. Shot counts are drawn from the simulated probabilities with a
-fixed seed (20261113). Resource counts come from the Qiskit 2.2.3 transpiler targeting
-rz, sx, x and cx gates with all-to-all connectivity (optimization level 1, seed 7).
+**Simulator.** The quantum algorithm runs on Qiskit Aer 0.17.2's statevector simulator:
+every qubit of the 21-qubit two-bond circuit is simulated, with no noise model and no
+error mitigation, and shots use fixed seeds (from 20261113). Loading and arithmetic checks
+use Qiskit's exact statevector. The query-scaling study in the app uses a NumPy
+statevector of the same amplitude rotation. Resource counts come from the Qiskit 2.2.3
+transpiler targeting rz, sx, x and cx gates with all-to-all connectivity (optimization
+level 1, seed 7).
 
 ## Sample outputs
 
@@ -183,7 +212,7 @@ rz, sx, x and cx gates with all-to-all connectivity (optimization level 1, seed 
 | [`results/samples/public-two-bond-1.5pct.json`](results/samples/public-two-bond-1.5pct.json), [`.md`](results/samples/public-two-bond-1.5pct.md) | JSON and Markdown exports of the same calculation |
 | [`results/validation.md`](results/validation.md) | Every proposal figure recomputed, with discrepancies |
 | [`results/benchmark/`](results/benchmark) | Official evaluator reports for the public and practice suites |
-| [`results/quantum.json`](results/quantum.json) | Amplitude-estimation study and compiled resource counts |
+| [`results/quantum.json`](results/quantum.json) | Quantum circuit verification, reserve search, bound confirmation, coverage and resource counts |
 | [`docs/screenshots/`](docs/screenshots) | The Decision, Scenarios, Evidence and Method views |
 
 ![Where the decision binds: refinement cells for the synthetic five-country chain](docs/screenshots/synthetic-five-countries.jpg)
