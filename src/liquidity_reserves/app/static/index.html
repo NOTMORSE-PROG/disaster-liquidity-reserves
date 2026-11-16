@@ -268,19 +268,34 @@
           </ol>
           <div id="tensor" class="chart" role="img" aria-label="Tensor chain: country tensors linked by shared-state bonds, each adding its payout to a running register."></div>
         </article>
+        <article class="card prose">
+          <h2>Quantum algorithm: the same tensors, loaded into a circuit</h2>
+          <p class="hint" id="quantum-scope"></p>
+          <ol class="steps">
+            <li><strong>Shared shocks.</strong> Each neighbouring pair gets a 4-qubit register holding its shared earthquake count and shared rain event, prepared with amplitudes equal to the square roots of their probabilities.</li>
+            <li><strong>Country outcomes.</strong> Each country gets a 4-qubit register for its earthquake steps and rain trigger, prepared conditionally on its two neighbouring pair registers from that country's tensor. The pair registers purify the shared shocks, so the outcome registers carry the exact regional joint law.</li>
+            <li><strong>Payouts and the reserve.</strong> A Fourier-space adder adds every country's payout and subtracts the reserve plus one payout step; the sign bit sets a flag when payouts are strictly above the reserve.</li>
+            <li><strong>Amplitude estimation.</strong> Grover powers amplify the flag and maximum-likelihood estimation turns the measured counts into P(payout &gt; reserve) with a confidence interval.</li>
+          </ol>
+          <h3 class="subhead">Verification</h3>
+          <div id="quantum-verification" class="table-scroll"></div>
+          <h3 class="subhead">The reserve decision, reached with the quantum circuit</h3>
+          <p class="hint" id="quantum-decision-note"></p>
+          <div id="quantum-decision" class="table-scroll"></div>
+          <details><summary>Probes of the quantum reserve search</summary><div id="quantum-probes" class="table-scroll"></div></details>
+        </article>
         <article class="card">
           <div class="card-head">
-            <h2>Quantum track: amplitude estimation of P(payout &gt; reserve)</h2>
+            <h2>Query scaling: amplitude estimation against Monte Carlo</h2>
             <button id="run-quantum" type="button" class="button secondary">Run on current inputs</button>
           </div>
-          <p class="hint" id="quantum-scope"></p>
-          <div class="legend"><span class="legend-item"><span class="swatch s-base"></span>Amplitude estimation (ideal simulator)</span><span class="legend-item"><span class="swatch s-observed"></span>Monte Carlo, same queries</span></div>
+          <div class="legend"><span class="legend-item"><span class="swatch s-base"></span>Amplitude estimation</span><span class="legend-item"><span class="swatch s-observed"></span>Monte Carlo, same number of queries</span></div>
           <div id="quantum-chart" class="chart" role="img"></div>
           <p class="hint" id="quantum-note"></p>
         </article>
         <article class="card">
-          <h2>Quantum resource estimate</h2>
-          <p class="hint">Compiled with Qiskit to rz, sx, x and cx gates with all-to-all connectivity. Query counts are for a 95% half-width of the stated precision.</p>
+          <h2>Quantum resource estimate for the tensor-chain circuit</h2>
+          <p class="hint">Compiled with Qiskit to rz, sx, x and cx gates, all-to-all connectivity. Qubits and gates grow linearly with the number of countries. Query counts are for a 95% half-width of the stated precision.</p>
           <div id="resources-table" class="table-scroll"></div>
         </article>
       </section>

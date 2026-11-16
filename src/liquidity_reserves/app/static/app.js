@@ -581,11 +581,77 @@ async function renderEvidence() {
 }
 
 function renderQuantum(study, source) {
-  $("quantum-scope").textContent = study.scope || "Ideal noiseless statevector simulation on the CPU; no hardware and no speed-up claim.";
   const s = study.query_study || study;
   queryChart($("quantum-chart"), s);
   const last = s.rows[s.rows.length - 1];
-  $("quantum-note").textContent = `${source}: P(L > ${fmt.usdM(s.amount_usd)}) = ${fmt.pct(s.probability)} on ${s.qubits} qubits (${s.attained_levels} payout levels). Statevector matches theory to ${fmt.sci(s.statevector_vs_analytic_max_error)}. At ${fmt.num(last.queries)} queries, amplitude estimation RMSE ${fmt.sci(last.qae_rmse)} vs Monte Carlo ${fmt.sci(last.monte_carlo_rmse)} (${(last.monte_carlo_rmse / last.qae_rmse).toFixed(1)}x lower). ${s.shots_per_power} shots per Grover power, ${s.repeats} repeats.`;
+  $("quantum-note").textContent = `${source}: P(L > ${fmt.usdM(s.amount_usd)}) = ${fmt.pct(s.probability)}, simulated for speed on a compact ${s.qubits}-qubit payout register with the same amplitude rotation as the full circuit (matches theory to ${fmt.sci(s.statevector_vs_analytic_max_error)}). At ${fmt.num(last.queries)} queries, amplitude estimation RMSE ${fmt.sci(last.qae_rmse)} vs Monte Carlo ${fmt.sci(last.monte_carlo_rmse)} (${(last.monte_carlo_rmse / last.qae_rmse).toFixed(1)}x lower). ${s.shots_per_power} shots per Grover power, ${s.repeats} repeats.`;
+}
+
+function interval(r) {
+  if (!r.ci95) return `${fmt.pct(r.estimate)} [no consistent interval]`;
+  return `${fmt.pct(r.estimate)} [${fmt.pct(r.ci95[0])}, ${fmt.pct(r.ci95[1])}]`;
+}
+
+function renderQuantumAlgorithm(q) {
+  $("quantum-scope").textContent = q.scope;
+  const v = q.verification;
+  if (!v) return;
+  const two = v.two_countries;
+  const three = v.three_countries;
+  const ok = (flag) => chip(flag ? "Pass" : "Fail", flag ? "pass" : "fail");
+  $("quantum-verification").replaceChildren(
+    table(
+      ["Check", "Result", ""],
+      [
+        [`Loaded outcome law vs exact joint law, 2 countries (${two.qubits}-qubit circuit)`, `max error ${fmt.sci(two.loading_max_error)}`, ok(two.loading_max_error < 1e-12)],
+        [`Loaded outcome law vs exact joint law, 3 countries (${three.qubits}-qubit circuit)`, `max error ${fmt.sci(three.loading_max_error)}`, ok(three.loading_max_error < 1e-12)],
+        ["Payout adder and reserve flag, every outcome combination", `${two.arithmetic.combinations} and ${three.arithmetic.combinations} combinations exact`, ok(two.arithmetic.register_correct && two.arithmetic.flag_correct && three.arithmetic.register_correct && three.arithmetic.flag_correct)],
+        [`Full circuit, all ${two.qubits} qubits simulated, Grover powers ${two.full_circuit_powers.join(", ")}`, `max deviation from theory ${fmt.sci(two.full_circuit_max_error)}`, ok(two.full_circuit_max_error < 1e-9)],
+        ...(q.interval_coverage || []).map((c) => [
+          `95% interval covers the exact value, ${fmt.num(c.repeats)} repeated runs, Grover powers up to ${c.max_power}`,
+          `${fmt.pct(c.coverage, 1)} (median width ${fmt.pct(c.median_width, 3)})`,
+          ok(c.coverage >= c.nominal),
+        ]),
+      ],
+      { className: "dense" },
+    ),
+  );
+  const est = q.full_circuit_estimate;
+  const searches = q.reserve_search || [];
+  const cert = q.bound_certification;
+  const rows = [
+    [`P(payout > ${fmt.usdM(est.reserve_usd)}), base assumptions`, interval(est), `exact ${fmt.pct(est.exact)}`, `${fmt.num(est.queries)} queries`],
+    ...searches.map((s) => [
+      `Quantum reserve search, base assumptions, ${fmt.pct(s.risk_limit, 1)} limit`,
+      s.resolved ? fmt.usdM(s.reserve_usd) : `${fmt.usdM(s.lower_usd)} to ${fmt.usdM(s.upper_usd)}`,
+      `classical ${fmt.usdM(s.classical_reserve_usd)}`,
+      `${s.resolved ? "resolved" : "bracket"}: ${s.probes.length} probes, ${fmt.num(s.queries)} queries`,
+    ]),
+  ];
+  if (cert) {
+    rows.push([
+      `Smaller reserve ${fmt.usdM(cert.witness.reserve_usd)} in the supporting scenario: exceeds ${fmt.pct(cert.risk_limit, 1)}?`,
+      interval(cert.witness),
+      `exact ${fmt.pct(cert.witness.exact)}`,
+      cert.witness.verdict === "exceeds" ? "shown to fall short" : "not shown",
+    ]);
+    for (const cell of cert.dominating_cells) {
+      rows.push([
+        `${fmt.usdM(cell.reserve_usd)} under the dominating model: within ${fmt.pct(cert.risk_limit, 1)}?`,
+        interval(cell),
+        `exact ${fmt.pct(cell.exact)}`,
+        cell.verdict === "meets" ? "shown sufficient" : "not shown",
+      ]);
+    }
+  }
+  $("quantum-decision").replaceChildren(table(["Quantity", "Quantum estimate [95% interval]", "Classical engine", "Outcome"], rows, { className: "dense" }));
+  $("quantum-decision-note").textContent = cert
+    ? `Every probability below comes from shot counts on the full simulated circuit. ${cert.certified ? `Both range bounds at ${fmt.pct(cert.risk_limit, 1)} are confirmed by the quantum estimates: ${fmt.usdM(cert.upper_usd)} is the reserve to hold.` : "Not every bound could be confirmed at this depth."}`
+    : "";
+  const probes = searches.flatMap((s) =>
+    s.probes.map((p) => [fmt.pct(s.risk_limit, 1), fmt.usdM(p.reserve_usd), interval(p), p.verdict, fmt.num(p.queries)]),
+  );
+  $("quantum-probes").replaceChildren(table(["Limit", "Reserve probed", "P(payout > reserve)", "Verdict", "Queries"], probes, { className: "dense" }));
 }
 
 async function renderMethod() {
@@ -593,10 +659,11 @@ async function renderMethod() {
   const e = await loadEvidence();
   if (state.quantum) renderQuantum(state.quantum, "Current inputs");
   else if (e.quantum) renderQuantum(e.quantum, "Recorded study, public two-bond base case");
+  if (e.quantum) renderQuantumAlgorithm(e.quantum);
   if (e.quantum) {
     $("resources-table").replaceChildren(
       table(
-        ["Case", "Precision (95%)", "Qubits", "CX: loading", "CX per Grover step", "Depth per step", "Grover depth", "QAE queries", "Monte Carlo queries"],
+        ["Portfolio", "Precision (95%)", "Qubits", "CX: loading", "CX per Grover step", "Depth per step", "Grover depth", "QAE queries", "Monte Carlo queries"],
         e.quantum.resources.map((r) => [
           r.case,
           `±${fmt.pct(r.epsilon, 2)}`,
