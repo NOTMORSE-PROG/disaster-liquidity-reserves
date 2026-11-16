@@ -1,0 +1,43 @@
+.report-body { background: var(--surface-2); }
+.report-toolbar {
+  position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 10px 16px; background: var(--brand); color: #fff; font-size: 0.9rem;
+}
+.sheet {
+  width: min(210mm, calc(100% - 32px)); margin: 20px auto 40px; background: #fff; color: var(--ink);
+  padding: 16mm 15mm; box-shadow: 0 6px 28px rgba(0, 0, 0, 0.12); border-radius: 4px;
+}
+.report-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; border-bottom: 2px solid var(--brand); padding-bottom: 10px; margin-bottom: 14px; }
+.report-head .brand-mark rect { fill: #0f2f57; }
+.report-head .brand-name { color: var(--brand); }
+.report-kind { margin: 0; color: var(--ink-2); font-size: 0.85rem; }
+.report-meta { text-align: right; color: var(--ink-2); font-size: 0.78rem; line-height: 1.45; }
+.sheet h1 { font-size: 1.3rem; margin: 0 0 8px; }
+.sheet h2 { font-size: 0.98rem; color: var(--brand); }
+.report-section { margin: 14px 0; break-inside: avoid; }
+.report-section.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.report-section.decision { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 18px; align-items: center; background: var(--accent-soft); border-radius: 10px; padding: 14px 16px; }
+.report-section .verdict-value { font-size: 2.1rem; margin-bottom: 4px; }
+.report-stats { margin: 0; display: grid; gap: 8px; }
+.report-stats div { border-left: 3px solid var(--accent); padding-left: 10px; }
+.report-stats dt { font-size: 0.78rem; color: var(--ink-2); }
+.report-stats dd { margin: 0; font-weight: 700; font-size: 1.05rem; }
+.report-stats p { margin: 0; font-size: 0.75rem; color: var(--ink-3); }
+.sheet table { font-size: 0.78rem; }
+.sheet th, .sheet td { padding: 4px 6px; }
+.sheet .list, .sheet .checks { font-size: 0.8rem; }
+.report-foot { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 8px; color: var(--ink-3); font-size: 0.72rem; }
+
+@media (max-width: 760px) {
+  .report-section.two, .report-section.decision { grid-template-columns: minmax(0, 1fr); }
+  .sheet { padding: 16px; }
+}
+
+@page { size: A4; margin: 12mm; }
+@media print {
+  .report-body { background: #fff; }
+  .report-toolbar { display: none; }
+  .sheet { width: auto; margin: 0; padding: 0; box-shadow: none; }
+  .break-before { break-before: page; }
+  .tooltip { display: none !important; }
+}

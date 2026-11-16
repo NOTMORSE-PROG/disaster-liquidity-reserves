@@ -1,10 +1,20 @@
-"use strict";
-
-// Every number shown here comes from the server's engine response; the page
-// only formats and draws it.
+// ReserveBound front end. All numbers come from the local engine API.
+import {
+  assumptionMap,
+  chainMap,
+  driverBars,
+  el,
+  exceedanceChart,
+  fmt,
+  pairedBars,
+  proofCostNote,
+  queryChart,
+  rampLegend,
+  sweepChart,
+  tensorDiagram,
+} from "./charts.js";
 
 const $ = (id) => document.getElementById(id);
-const SVG_NS = "http://www.w3.org/2000/svg";
 const FIELDS = [
   "risk_limit_percent",
   "earthquake_multiplier_low",
@@ -18,65 +28,98 @@ const FIELDS = [
   "max_evaluations",
   "grid_subdivisions",
 ];
-const SERIES = {
-  base: "Base assumptions",
-  observed: "Highest feasible scenario",
-  bound: "Certified upper bound",
+const SLIDERS = [
+  ["risk_slider", "risk_limit_percent"],
+  ["quake_high_slider", "earthquake_multiplier_high"],
+  ["rain_high_slider", "rain_share_percent_high"],
+];
+const PIN_KEY = "reservebound:pins";
+const REPORT_KEY = "reservebound:report";
+const AUTO_MAX_COUNTRIES = 10;
+
+const state = {
+  defaults: null,
+  lastPayload: null,
+  lastResult: null,
+  dirty: false,
+  view: "decision",
+  evidence: null,
+  sweep: null,
+  sweepKey: null,
+  quantum: null,
+  ticket: 0,
+  defaultsTicket: 0,
+  timer: null,
 };
 
-const state = { defaults: null, lastPayload: null, lastResult: null, dirty: false };
-
-function el(tag, attrs = {}, children = []) {
-  const node = document.createElement(tag);
-  for (const [key, value] of Object.entries(attrs)) {
-    if (value === undefined || value === null) continue;
-    if (key === "text") node.textContent = value;
-    else if (key === "class") node.className = value;
-    else node.setAttribute(key, value);
-  }
-  for (const child of [].concat(children)) {
-    if (child !== null && child !== undefined) node.append(child);
-  }
-  return node;
-}
-
-function svg(tag, attrs = {}) {
-  const node = document.createElementNS(SVG_NS, tag);
-  for (const [key, value] of Object.entries(attrs)) {
-    if (key === "text") node.textContent = value;
-    else node.setAttribute(key, value);
-  }
-  return node;
-}
-
-const pct = (p, digits = 3) => (p === null || p === undefined ? "n/a" : `${(100 * p).toFixed(digits)}%`);
-const usdM = (usd) => `$${(usd / 1e6).toLocaleString("en-US", { maximumFractionDigits: 2 })}m`;
-const usd = (value) => `$${Number(value).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+const store = {
+  get(key, fallback) {
+    try {
+      const raw = window.localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch {
+      return fallback;
+    }
+  },
+  set(key, value) {
+    try {
+      window.localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch {
+      return false;
+    }
+  },
+};
 
 async function api(path, options = {}) {
   const response = await fetch(path, options);
   const type = response.headers.get("Content-Type") || "";
   const body = type.includes("json") ? await response.json() : await response.blob();
   if (!response.ok) {
-    const errors = body && body.errors ? body.errors : [`Request failed (${response.status})`];
-    const error = new Error(errors.join("; "));
-    error.messages = errors;
+    const messages = body && body.errors ? body.errors : [`Request failed (${response.status})`];
+    const error = new Error(messages.join("; "));
+    error.messages = messages;
     throw error;
   }
   return { body, response };
 }
 
-// --- form -----------------------------------------------------------------
+const post = (path, payload) =>
+  api(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
 
-function fillForm(defaults) {
+const usdBig = (value) =>
+  value >= 1e6 ? `$${(value / 1e6).toLocaleString("en-US", { maximumFractionDigits: 3 })} million` : fmt.usd(value);
+
+function table(headers, rows, options = {}) {
+  return el("table", { class: options.className }, [
+    options.caption ? el("caption", { text: options.caption }) : null,
+    el("thead", {}, el("tr", {}, headers.map((h) => el("th", { scope: "col", class: h.wrap ? "wrap" : null, text: h.label ?? h })))),
+    el("tbody", {}, rows.map((cells) => el("tr", {}, cells.map((c) => (c instanceof Node ? el("td", {}, c) : el("td", { text: String(c) })))))),
+  ]);
+}
+
+function chip(text, kind) {
+  return el("span", { class: `chip ${kind}`, text });
+}
+
+// --- form --------------------------------------------------------------------------
+
+function syncSliders() {
+  for (const [slider, input] of SLIDERS) $(slider).value = $(input).value;
+  $("countries-out").textContent = $("synthetic_countries").value;
+}
+
+function fillForm(defaults, keepSettings = false) {
+  const kept = Object.fromEntries(FIELDS.map((name) => [name, $(name).value]));
+  const keptGrid = $("compare_grid").checked;
   state.defaults = defaults;
   $("example").value = defaults.example;
   $("synthetic_countries").value = defaults.synthetic_countries;
   $("countries-field").hidden = defaults.example !== "synthetic-chain";
   $("synthetic-badge").hidden = !defaults.synthetic;
   $("example-description").textContent = defaults.description;
-  for (const name of FIELDS) $(name).value = defaults[name];
-  $("compare_grid").checked = Boolean(defaults.compare_grid);
+  for (const name of FIELDS) $(name).value = keepSettings ? kept[name] : defaults[name];
+  $("compare_grid").checked = keepSettings ? keptGrid : Boolean(defaults.compare_grid);
   const rows = $("country-rows");
   rows.replaceChildren();
   defaults.countries.forEach((country, i) => {
@@ -102,6 +145,7 @@ function fillForm(defaults) {
       ]),
     );
   });
+  syncSliders();
   clearErrors();
 }
 
@@ -120,417 +164,493 @@ function readForm() {
   return payload;
 }
 
+async function loadDefaults(example, countries, keepSettings = false) {
+  // Responses can arrive out of order; only the newest request may fill the form.
+  const ticket = ++state.defaultsTicket;
+  const query = new URLSearchParams({ example, countries: String(countries || 5) });
+  const { body } = await api(`/api/defaults?${query}`);
+  if (ticket === state.defaultsTicket) fillForm(body, keepSettings);
+}
+
 function clearErrors() {
   $("errors").hidden = true;
   $("errors").replaceChildren();
-  for (const input of document.querySelectorAll("[aria-invalid]")) input.removeAttribute("aria-invalid");
 }
 
 function showErrors(messages) {
-  const box = $("errors");
-  box.replaceChildren(
+  $("errors").replaceChildren(
     el("strong", { text: "Please correct these inputs:" }),
     el("ul", {}, messages.map((m) => el("li", { text: m }))),
   );
-  box.hidden = false;
-  box.focus?.();
+  $("errors").hidden = false;
 }
-
-let defaultsTicket = 0;
-
-async function loadDefaults(example, countries, keepSettings = false) {
-  // Responses can arrive out of order; only the newest request may fill the form.
-  const ticket = ++defaultsTicket;
-  const query = new URLSearchParams({ example, countries: String(countries || 5) });
-  const { body } = await api(`/api/defaults?${query}`);
-  if (ticket !== defaultsTicket) return;
-  const kept = Object.fromEntries(FIELDS.map((name) => [name, $(name).value]));
-  const grid = $("compare_grid").checked;
-  fillForm(body);
-  if (keepSettings) {
-    // A new country count rebuilds the country table only; the analyst's
-    // risk limit, ranges and calculation settings stay as entered.
-    for (const name of FIELDS) $(name).value = kept[name];
-    $("compare_grid").checked = grid;
-  }
-}
-
-// --- results ----------------------------------------------------------------
-
-function render(result) {
-  state.lastResult = result;
-  $("placeholder").hidden = true;
-  $("result-body").hidden = false;
-
-  const status = $("status");
-  status.className = `status ${result.resolved ? "ok" : "warn"}`;
-  status.textContent = result.status_text;
-
-  $("messages").replaceChildren(
-    ...result.messages.map((m) => el("li", { class: m.level, text: m.text })),
-  );
-
-  const base = result.base;
-  $("tile-base").textContent =
-    base.reserve.usd === base.reserve_upper.usd
-      ? base.reserve.text
-      : `${base.reserve.text} to ${base.reserve_upper.text}`;
-  $("tile-base-note").textContent = `Exceeded with probability ${pct(base.exceedance_at_reserve)} at the base assumptions`;
-  const range = result.range_result;
-  $("tile-range").textContent = range.resolved ? range.upper.text : `${range.lower.text} to ${range.upper.text}`;
-  $("tile-range-note").textContent = range.resolved
-    ? "Smallest reserve meeting the limit for every assumption in the range"
-    : `Unresolved bracket, width ${range.gap.text}`;
-  const evals = result.evaluations;
-  $("tile-evals").textContent = String(evals.adaptive.total);
-  $("tile-evals-note").textContent = evals.grid
-    ? `Adaptive refinement vs ${evals.grid.evaluations} for the ${evals.grid.method} (${
-        evals.grid.resolved ? evals.grid.upper.text : `${evals.grid.lower.text} to ${evals.grid.upper.text}`
-      })`
-    : `Adaptive refinement (budget ${evals.budget})`;
-
-  renderChart(result.chart);
-  renderKeyTable(result);
-  renderShortfall(result);
-  renderSufficiency(result);
-  $("assumptions").replaceChildren(...result.assumptions.map((a) => el("li", { text: a })));
-  renderChecks(result);
-  setDirty(false);
-}
-
-function renderKeyTable(result) {
-  const head = el("tr", {}, [
-    el("th", { scope: "col", text: "Reserve" }),
-    el("th", { scope: "col", text: "Base" }),
-    el("th", { scope: "col", text: "Highest feasible" }),
-    el("th", { scope: "col", text: "Certified bound" }),
-    el("th", { scope: "col", text: "Expected payout above (base)" }),
-    el("th", { scope: "col", text: "Expected payout above (highest)" }),
-    el("th", { scope: "col", text: "Meets limit everywhere" }),
-  ]);
-  const rows = result.key_amounts.map((row) =>
-    el("tr", {}, [
-      el("td", { text: row.amount.text }),
-      el("td", { text: pct(row.base_exceedance) }),
-      el("td", { text: pct(row.observed_exceedance) }),
-      el("td", { text: pct(row.bound_exceedance) }),
-      el("td", { text: usd(row.base_expected_excess_usd) }),
-      el("td", { text: usd(row.observed_expected_excess_usd) }),
-      el("td", { text: row.meets_limit_everywhere ? "Yes" : "No" }),
-    ]),
-  );
-  $("key-table").replaceChildren(
-    el("table", {}, [
-      el("caption", { class: "hint", text: "Probability that payouts are strictly greater than each amount" }),
-      el("thead", {}, head),
-      el("tbody", {}, rows),
-    ]),
-  );
-}
-
-function rateTable(headers, rows) {
-  return el("table", {}, [
-    el("thead", {}, el("tr", {}, headers.map((h) => el("th", { scope: "col", text: h })))),
-    el(
-      "tbody",
-      {},
-      rows.map((r) => el("tr", {}, r.map((v) => el("td", { text: v })))),
-    ),
-  ]);
-}
-
-function renderShortfall(result) {
-  const scenario = result.supporting_scenario;
-  $("shortfall-text").textContent = scenario.shortfall
-    ? scenario.shortfall.explanation
-    : "A zero reserve meets the limit in every evaluated scenario, so no smaller reserve exists.";
-  const pairs = scenario.point.pairs.map((p) => [
-    p.pair,
-    p.shared_earthquake_per_year.toPrecision(4),
-    p.shared_rain_per_year.toPrecision(4),
-  ]);
-  const detail = [
-    rateTable(["Pair", "Shared earthquakes / yr", "Shared rain / yr"], pairs),
-    rateTable(
-      ["Country", "Private earthquakes / yr", "Private rain / yr"],
-      scenario.private_rates.map((r) => [
-        r.country,
-        r.private_earthquake_per_year.toPrecision(4),
-        r.private_rain_per_year.toPrecision(4),
-      ]),
-    ),
-  ];
-  if (scenario.shortfall) {
-    detail.unshift(
-      el("p", {
-        class: "hint",
-        text: `Smaller reserve ${scenario.shortfall.smaller_reserve.text}: exceeded with probability ${pct(
-          scenario.shortfall.exceedance,
-        )}; expected payout above it ${usd(scenario.shortfall.expected_excess_usd)}.`,
-      }),
-    );
-  }
-  $("shortfall-detail").replaceChildren(...detail);
-}
-
-function renderSufficiency(result) {
-  const s = result.sufficiency;
-  $("sufficiency-text").textContent = s.explanation;
-  const cell = s.binding_cell;
-  const rates = cell.dominating_rates;
-  const countries = result.inputs.pool.countries.map((c) => c.code);
-  $("sufficiency-detail").replaceChildren(
-    el("p", {
-      class: "hint",
-      text: `Tightest cell: earthquake multiple ${cell.earthquake_multiplier[0].toFixed(3)} to ${cell.earthquake_multiplier[1].toFixed(
-        3,
-      )}, rain share ${(100 * cell.rain_share[0]).toFixed(2)}% to ${(100 * cell.rain_share[1]).toFixed(2)}%. Its dominating model:`,
-    }),
-    rateTable(
-      ["Country", "Private earthquakes / yr", "Private rain / yr"],
-      countries.map((code, i) => [
-        code,
-        rates.earthquake_private_per_year[i].toPrecision(4),
-        rates.rain_private_per_year[i].toPrecision(4),
-      ]),
-    ),
-  );
-}
-
-function renderChecks(result) {
-  const marks = { true: ["pass", "Pass"], false: ["fail", "Fail"], null: ["skip", "Not run"] };
-  $("checks").replaceChildren(
-    ...result.checks.map((c) => {
-      const [cls, label] = marks[String(c.passed)];
-      return el("li", {}, [
-        el("span", { class: `mark ${cls}`, text: label }),
-        el("span", {}, [c.check, el("span", { class: "detail", text: c.detail })]),
-      ]);
-    }),
-  );
-  const recorded = result.recorded_validation;
-  const parts = [];
-  if (recorded.validation) {
-    const v = recorded.validation;
-    parts.push(
-      el("p", {
-        text: `Recorded validation (${v.generated_utc}): ${v.passed} of ${v.checks} checks agree with the technical proposal's figures and independent calculations.`,
-      }),
-    );
-    if (v.discrepancies.length) {
-      parts.push(
-        el(
-          "ul",
-          { class: "assumptions" },
-          v.discrepancies.map((d) =>
-            el("li", { text: `Discrepancy: ${d.check}. Proposal: ${d.target}; computed: ${d.computed}. ${d.note}` }),
-          ),
-        ),
-      );
-    }
-  } else {
-    parts.push(el("p", { class: "hint", text: "No recorded validation found in results/." }));
-  }
-  if (recorded.benchmark) {
-    const t = recorded.benchmark.totals;
-    parts.push(
-      el("p", {
-        text: `Official evaluation-v1 evaluator, classical_cpu, ${recorded.benchmark.repeats} repeats: ${t.cases_passing} of ${t.cases} cases and ${t.metric_passes} of ${t.metric_checks} metric checks pass; ${t.valid_runs} of ${t.runs} runs valid.`,
-      }),
-    );
-  }
-  $("recorded").replaceChildren(...parts);
-}
-
-// --- chart --------------------------------------------------------------------
-
-function niceStep(span, target) {
-  const raw = span / target;
-  const power = 10 ** Math.floor(Math.log10(raw));
-  const unit = raw / power;
-  return power * (unit < 1.5 ? 1 : unit < 3 ? 2 : unit < 7 ? 5 : 10);
-}
-
-function stepValue(series, x) {
-  // Exceedance is a right-continuous step function: value at the last point <= x.
-  let lo = 0;
-  let hi = series.x.length - 1;
-  if (x < series.x[0]) return series.y[0];
-  while (lo < hi) {
-    const mid = (lo + hi + 1) >> 1;
-    if (series.x[mid] <= x) lo = mid;
-    else hi = mid - 1;
-  }
-  return series.y[lo];
-}
-
-function renderChart(chart) {
-  const host = $("chart");
-  host.replaceChildren();
-  const width = Math.max(host.clientWidth, 320);
-  const height = 380;
-  const m = { top: 58, right: 18, bottom: 40, left: 74 };
-  const w = width - m.left - m.right;
-  const h = height - m.top - m.bottom;
-  const limit = chart.risk_limit;
-  const positives = chart.series.flatMap((s) => s.y.filter((v) => v > 0));
-  const yMin = 10 ** Math.floor(Math.log10(Math.max(Math.min(limit / 10, ...positives), 1e-7)));
-  const yMax = 1;
-  const xMax = chart.x_max_usd;
-  const sx = (x) => m.left + (Math.min(x, xMax) / xMax) * w;
-  const sy = (y) => m.top + ((Math.log10(yMax) - Math.log10(Math.max(y, yMin))) / (Math.log10(yMax) - Math.log10(yMin))) * h;
-
-  const root = svg("svg", { viewBox: `0 0 ${width} ${height}`, width, height });
-  const grid = svg("g", { class: "grid" });
-  const axis = svg("g", { class: "axis" });
-  for (let e = Math.log10(yMin); e <= 0; e += 1) {
-    const y = sy(10 ** e);
-    grid.append(svg("line", { x1: m.left, x2: m.left + w, y1: y, y2: y }));
-    axis.append(svg("text", { x: m.left - 8, y: y + 4, "text-anchor": "end", text: pct(10 ** e, e < -2 ? Math.min(-e - 2, 4) : 0) }));
-  }
-  const step = niceStep(xMax / 1e6, 6) * 1e6;
-  for (let x = 0; x <= xMax + 1; x += step) {
-    const px = sx(x);
-    grid.append(svg("line", { x1: px, x2: px, y1: m.top, y2: m.top + h }));
-    axis.append(svg("text", { x: px, y: m.top + h + 16, "text-anchor": "middle", text: usdM(x) }));
-  }
-  axis.append(svg("line", { x1: m.left, x2: m.left + w, y1: m.top + h, y2: m.top + h }));
-  axis.append(svg("text", { x: m.left + w / 2, y: height - 4, "text-anchor": "middle", text: "Reserve (USD)" }));
-  axis.append(
-    svg("text", {
-      x: 12,
-      y: m.top + h / 2,
-      "text-anchor": "middle",
-      transform: `rotate(-90 12 ${m.top + h / 2})`,
-      text: "P(payouts > reserve)",
-    }),
-  );
-  root.append(grid, axis);
-
-  // Risk limit line with a direct label.
-  root.append(svg("line", { class: "limit", x1: m.left, x2: m.left + w, y1: sy(limit), y2: sy(limit) }));
-  root.append(svg("text", { class: "direct-label", x: m.left + w - 4, y: sy(limit) - 6, "text-anchor": "end", text: `Risk limit ${pct(limit, 2)}` }));
-
-  for (const series of chart.series) {
-    let d = "";
-    series.x.forEach((x, i) => {
-      const px = sx(x);
-      const py = sy(series.y[i]);
-      d += i === 0 ? `M${px},${py}` : `H${px}V${py}`;
-    });
-    d += `H${sx(xMax)}`;
-    root.append(svg("path", { class: `series s-${series.id}`, d }));
-  }
-
-  // Reserve markers; identical amounts share one label.
-  const groups = new Map();
-  for (const marker of chart.markers) {
-    const key = marker.usd.toFixed(2);
-    groups.set(key, [...(groups.get(key) || []), marker]);
-  }
-  let row = 0;
-  for (const markers of groups.values()) {
-    const px = sx(markers[0].usd);
-    const label = `${markers.map((mk) => mk.label).join(" = ")}: ${usdM(markers[0].usd)}`;
-    root.append(svg("line", { class: "marker", x1: px, x2: px, y1: m.top - 6, y2: m.top + h }));
-    const anchorEnd = px > m.left + w * 0.6;
-    root.append(
-      svg("text", {
-        class: "marker-label",
-        x: anchorEnd ? px - 4 : px + 4,
-        y: 14 + row * 15,
-        "text-anchor": anchorEnd ? "end" : "start",
-        text: label,
-      }),
-    );
-    row += 1;
-  }
-
-  // Crosshair and tooltip.
-  const cross = svg("line", { class: "crosshair", y1: m.top, y2: m.top + h, visibility: "hidden" });
-  const dots = chart.series.map((s) => svg("circle", { class: `dot s-${s.id}`, r: 4, visibility: "hidden" }));
-  const hit = svg("rect", { x: m.left, y: m.top, width: w, height: h, fill: "transparent" });
-  root.append(cross, ...dots, hit);
-  const tooltip = $("chart-tooltip");
-  const hide = () => {
-    cross.setAttribute("visibility", "hidden");
-    dots.forEach((dot) => dot.setAttribute("visibility", "hidden"));
-    tooltip.hidden = true;
-  };
-  hit.addEventListener("pointerleave", hide);
-  hit.addEventListener("pointermove", (event) => {
-    const box = root.getBoundingClientRect();
-    const px = ((event.clientX - box.left) / box.width) * width;
-    const x = Math.max(0, Math.min(xMax, ((px - m.left) / w) * xMax));
-    cross.setAttribute("x1", sx(x));
-    cross.setAttribute("x2", sx(x));
-    cross.setAttribute("visibility", "visible");
-    const rows = chart.series.map((s, i) => {
-      const value = stepValue(s, x);
-      dots[i].setAttribute("cx", sx(x));
-      dots[i].setAttribute("cy", sy(value));
-      dots[i].setAttribute("visibility", "visible");
-      return el("div", { class: "t-row" }, [
-        el("span", { class: "t-key" }, [el("span", { class: `legend-swatch s-${s.id}` }), SERIES[s.id]]),
-        el("strong", { text: pct(value) }),
-      ]);
-    });
-    tooltip.replaceChildren(el("div", { class: "t-row" }, [el("strong", { text: `Reserve ${usdM(x)}` })]), ...rows);
-    tooltip.hidden = false;
-    const left = Math.min(event.clientX + 14, window.innerWidth - tooltip.offsetWidth - 8);
-    tooltip.style.left = `${left}px`;
-    tooltip.style.top = `${Math.max(8, event.clientY - tooltip.offsetHeight - 12)}px`;
-  });
-  host.append(root);
-  host.setAttribute(
-    "aria-label",
-    `Exceedance curves on a log scale. ${chart.markers.map((mk) => `${mk.label} ${usdM(mk.usd)}`).join(", ")}. Risk limit ${pct(limit, 2)}. The table view lists the values.`,
-  );
-
-  $("legend").replaceChildren(
-    ...chart.series.map((s) =>
-      el("span", { class: "legend-item" }, [el("span", { class: `legend-swatch s-${s.id}` }), SERIES[s.id]]),
-    ),
-    el("span", { class: "legend-item" }, [el("span", { class: "legend-swatch s-limit" }), "Risk limit"]),
-  );
-}
-
-// --- actions --------------------------------------------------------------------
 
 function setDirty(dirty) {
   state.dirty = dirty;
   $("dirty-note").hidden = !dirty || !state.lastResult;
-  $("export-json").disabled = dirty || !state.lastResult;
-  $("export-md").disabled = dirty || !state.lastResult;
+  for (const id of ["export-pdf", "export-json", "export-md"]) $(id).disabled = dirty || !state.lastResult;
 }
 
-async function runCalculation(event) {
+function autoAllowed() {
+  const countries = $("example").value === "synthetic-chain" ? Number($("synthetic_countries").value) : 2;
+  return $("auto").checked && countries <= AUTO_MAX_COUNTRIES;
+}
+
+function scheduleAuto() {
+  setDirty(true);
+  if (!autoAllowed()) return;
+  clearTimeout(state.timer);
+  state.timer = setTimeout(() => calculate(), 450);
+}
+
+// --- calculation ---------------------------------------------------------------------
+
+async function calculate(event) {
   event?.preventDefault();
+  clearTimeout(state.timer);
   clearErrors();
-  const button = $("calculate");
-  button.disabled = true;
-  button.textContent = "Calculating...";
+  const ticket = ++state.ticket;
   const payload = readForm();
+  $("busy").hidden = false;
+  $("calculate").disabled = true;
   try {
-    const { body } = await api("/api/calculate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    const { body } = await post("/api/calculate", payload);
+    if (ticket !== state.ticket) return; // a newer calculation superseded this one
     state.lastPayload = payload;
-    render(body);
+    state.lastResult = body;
+    state.quantum = null;
+    renderDecision(body);
+    setDirty(false);
+    if (state.view === "scenarios") runSweep();
   } catch (error) {
-    showErrors(error.messages || [error.message]);
+    if (ticket === state.ticket) showErrors(error.messages || [error.message]);
   } finally {
-    button.disabled = false;
-    button.textContent = "Calculate reserve";
+    if (ticket === state.ticket) {
+      $("busy").hidden = true;
+      $("calculate").disabled = false;
+    }
   }
+}
+
+// --- decision view --------------------------------------------------------------------
+
+function meter(host, rows, limit) {
+  const scale = Math.max(limit, ...rows.map((r) => r.value)) * 1.3;
+  host.replaceChildren(
+    ...rows.map((row) => {
+      const fill = el("span", { class: `meter-fill ${row.value > limit ? "over" : "under"}` });
+      fill.style.width = `${Math.min(100, (row.value / scale) * 100)}%`;
+      const mark = el("span", { class: "meter-limit", title: `Risk limit ${fmt.pct(limit, 2)}` });
+      mark.style.left = `${(limit / scale) * 100}%`;
+      return el("div", { class: "meter-row" }, [
+        el("span", { class: "meter-label", text: row.label }),
+        el("span", { class: "meter-track" }, [fill, mark]),
+        el("span", { class: "meter-value", text: fmt.pct(row.value) }),
+      ]);
+    }),
+    el("p", { class: "hint", text: `Black tick: the ${fmt.pct(limit, 2)} risk limit.` }),
+  );
+}
+
+function renderDecision(r) {
+  $("placeholder").hidden = true;
+  $("decision-body").hidden = false;
+  $("messages").replaceChildren(...r.messages.map((m) => el("li", { class: m.level, text: m.text })));
+  const h = r.headline;
+  const pool = r.inputs.pool;
+  const range = r.range_result;
+  $("verdict-eyebrow").textContent = `Reserve to hold · ${pool.term_years}-year term · ${fmt.pct(h.risk_limit, 2)} risk limit`;
+  $("verdict-value").textContent = range.resolved ? usdBig(range.upper.value) : `${fmt.usdM(range.lower.value)} to ${fmt.usdM(range.upper.value)}`;
+  $("verdict-text").textContent = range.resolved
+    ? `${range.upper.text} is the smallest reserve that keeps the chance of payouts exceeding it at or below ${fmt.pct(h.risk_limit, 2)} for every shared-shock assumption in the range.`
+    : `The smallest sufficient reserve lies in this bracket. ${r.status_text} Holding ${range.upper.text} is proven sufficient.`;
+  const pill = $("verdict-status");
+  pill.className = `pill ${range.resolved ? "ok" : "warn"}`;
+  pill.textContent = range.resolved ? "Minimum resolved" : r.status === "within_gap" ? "Bracket within tolerance" : "Unresolved bracket";
+  $("stat-base").textContent = h.base.text;
+  $("stat-base-note").textContent = `Exceeded with probability ${fmt.pct(r.base.exceedance_at_reserve)} under base assumptions`;
+  const sign = h.uplift_sign > 0 ? "+" : h.uplift_sign < 0 ? "-" : "";
+  $("stat-uplift").textContent = `${sign}${h.uplift.text}`;
+  $("stat-uplift-note").textContent =
+    h.uplift_percent === null ? "" : `${sign}${Math.abs(h.uplift_percent).toFixed(1)}% to cover uncertainty in shared shocks`;
+  $("stat-evals").textContent = `${h.evaluations} evaluations`;
+  $("stat-evals-note").textContent = proofCostNote(r);
+
+  const scenario = r.supporting_scenario;
+  const limit = r.inputs.risk_limit;
+  if (scenario.shortfall) {
+    meter($("shortfall-meter"), [{ label: `P(L > ${fmt.usdM(scenario.shortfall.smaller_reserve.value)})`, value: scenario.shortfall.exceedance }], limit);
+    $("shortfall-text").textContent = scenario.shortfall.explanation;
+  } else {
+    $("shortfall-meter").replaceChildren();
+    $("shortfall-text").textContent = "A zero reserve meets the limit in every evaluated scenario, so no smaller reserve exists.";
+  }
+  $("shortfall-detail").replaceChildren(
+    table(
+      ["Pair", "Shared quakes / yr", "Shared rain / yr"],
+      scenario.point.pairs.map((p) => [p.pair, p.shared_earthquake_per_year.toPrecision(4), p.shared_rain_per_year.toPrecision(4)]),
+    ),
+    table(
+      ["Country", "Private quakes / yr", "Private rain / yr"],
+      scenario.private_rates.map((p) => [p.country, p.private_earthquake_per_year.toPrecision(4), p.private_rain_per_year.toPrecision(4)]),
+    ),
+  );
+  const upperRow = r.key_amounts.find((k) => k.amount.usd === range.upper.usd);
+  meter(
+    $("sufficiency-meter"),
+    [
+      { label: `Bound at ${fmt.usdM(range.upper.value)}`, value: r.sufficiency.bound_at_upper },
+      upperRow ? { label: "Highest feasible", value: upperRow.observed_exceedance } : null,
+    ].filter(Boolean),
+    limit,
+  );
+  $("sufficiency-text").textContent = r.sufficiency.explanation;
+  const cell = r.sufficiency.binding_cell;
+  $("sufficiency-detail").replaceChildren(
+    el("p", {
+      class: "hint",
+      text: `Tightest cell: earthquake ${cell.earthquake_multiplier[0].toFixed(3)}x to ${cell.earthquake_multiplier[1].toFixed(3)}x, rain ${(100 * cell.rain_share[0]).toFixed(2)}% to ${(100 * cell.rain_share[1]).toFixed(2)}%.`,
+    }),
+    table(
+      ["Country", "Private quakes / yr", "Private rain / yr"],
+      pool.countries.map((c, i) => [
+        c.code,
+        cell.dominating_rates.earthquake_private_per_year[i].toPrecision(4),
+        cell.dominating_rates.rain_private_per_year[i].toPrecision(4),
+      ]),
+    ),
+  );
+  renderDecisionCharts(r);
+  renderKeyTable(r);
+  $("assumptions").replaceChildren(...r.assumptions.map((a) => el("li", { text: a })));
+  const marks = { true: ["pass", "Pass"], false: ["fail", "Fail"], null: ["muted", "Not run"] };
+  $("checks").replaceChildren(
+    ...r.checks.map((c) => {
+      const [kind, label] = marks[String(c.passed)];
+      return el("li", {}, [chip(label, kind), el("span", {}, [c.check, el("span", { class: "detail", text: c.detail })])]);
+    }),
+  );
+}
+
+function renderDecisionCharts(r) {
+  $("curve-legend").replaceChildren(
+    ...[
+      ["s-base", "Base assumptions"],
+      ["s-observed", "Highest feasible scenario"],
+      ["s-bound", "Certified upper bound"],
+      ["s-limit", "Risk limit"],
+    ].map(([cls, label]) => el("span", { class: "legend-item" }, [el("span", { class: `swatch ${cls}` }), label])),
+  );
+  exceedanceChart($("curve"), r.chart);
+  $("curve").setAttribute(
+    "aria-label",
+    `Exceedance curves on a log scale with the base reserve ${r.base.reserve.text}, lower bound ${r.range_result.lower.text} and upper bound ${r.range_result.upper.text}. Use the Table button for values.`,
+  );
+  const map = r.insights.map;
+  const { lo, hi } = assumptionMap($("map"), map);
+  rampLegend($("map-legend"), lo, hi);
+  $("map").setAttribute("aria-label", `Reserve needed at each assumption ranges from ${fmt.usdM(lo)} to ${fmt.usdM(hi)}.`);
+  $("map-note").textContent = `Colour: reserve needed if that one assumption were true. Outlined: the ${map.cells.length} refinement cells used for the certified bound. ${map.evaluations} map evaluations are for explanation only.`;
+  const drivers = r.insights.drivers;
+  $("drivers-note").textContent = `In the supporting scenario (${drivers.scenario}), payouts exceed ${fmt.usdM(drivers.amount_usd)} with probability ${fmt.pct(drivers.probability_exceeded)}. Bars show each country's expected payout in those outcomes.`;
+  driverBars($("drivers"), drivers);
+  chainMap($("chain"), r.insights.chain);
+}
+
+function renderKeyTable(r) {
+  $("key-table").replaceChildren(
+    table(
+      ["Reserve", "Base", "Highest feasible", "Certified bound", "E[payout above], base", "E[payout above], highest", "Meets limit everywhere"],
+      r.key_amounts.map((k) => [
+        k.amount.text,
+        fmt.pct(k.base_exceedance),
+        fmt.pct(k.observed_exceedance),
+        fmt.pct(k.bound_exceedance),
+        fmt.usd(k.base_expected_excess_usd),
+        fmt.usd(k.observed_expected_excess_usd),
+        k.meets_limit_everywhere ? "Yes" : "No",
+      ]),
+      { caption: "Probability that payouts are strictly greater than each amount" },
+    ),
+  );
+}
+
+// --- scenarios view -----------------------------------------------------------------------
+
+async function runSweep(force = false) {
+  if (!state.lastPayload) return;
+  const key = JSON.stringify(state.lastPayload);
+  if (!force && key === state.sweepKey && state.sweep) {
+    renderSweep();
+    return;
+  }
+  $("run-sweep").disabled = true;
+  $("sweep-note").textContent = "Calculating the reserve at seven risk limits...";
+  try {
+    const { body } = await post("/api/sweep", state.lastPayload);
+    state.sweep = body;
+    state.sweepKey = key;
+    renderSweep();
+  } catch (error) {
+    $("sweep-note").textContent = `Sweep failed: ${(error.messages || [error.message]).join("; ")}`;
+  } finally {
+    $("run-sweep").disabled = false;
+  }
+}
+
+function renderSweep() {
+  const s = state.sweep;
+  if (!s) return;
+  $("sweep-note").textContent = `${s.pool}${s.synthetic ? " (synthetic)" : ""}: ${s.rows.length} risk limits, ${s.total_evaluations} distribution evaluations in total. The vertical line marks the current limit.`;
+  sweepChart($("sweep"), s);
+  $("sweep-table").replaceChildren(
+    table(
+      ["Risk limit", "Base reserve", "Reserve across the range", "Uplift", "Evaluations", "Status"],
+      s.rows.map((row) => [
+        fmt.pct(row.risk_limit, 2),
+        fmt.usdM(row.base_usd),
+        row.resolved ? fmt.usdM(row.upper_usd) : `${fmt.usdM(row.lower_usd)} to ${fmt.usdM(row.upper_usd)}`,
+        fmt.usdM(row.upper_usd - row.base_usd),
+        row.evaluations,
+        chip(row.resolved ? "Resolved" : "Bracket", row.resolved ? "pass" : "warn"),
+      ]),
+    ),
+  );
+}
+
+function pinCurrent() {
+  const r = state.lastResult;
+  if (!r) return;
+  const pins = store.get(PIN_KEY, []);
+  const rng = r.inputs.range;
+  pins.unshift({
+    id: Date.now(),
+    portfolio: r.inputs.pool.name,
+    synthetic: r.inputs.pool.synthetic,
+    limit: r.inputs.risk_limit,
+    quake: rng.earthquake_multiplier,
+    rain: rng.rain_share,
+    base: r.headline.base.value,
+    lower: r.range_result.lower.value,
+    upper: r.range_result.upper.value,
+    resolved: r.range_result.resolved,
+    evaluations: r.headline.evaluations,
+    payload: state.lastPayload,
+  });
+  const saved = store.set(PIN_KEY, pins.slice(0, 12));
+  $("pin").textContent = saved ? "Pinned" : "Pinning unavailable";
+  setTimeout(() => ($("pin").textContent = "Pin scenario"), 1400);
+  renderPins();
+}
+
+function renderPins() {
+  const pins = store.get(PIN_KEY, []);
+  if (!pins.length) {
+    $("pins").replaceChildren(el("p", { class: "hint", text: "No pinned scenarios yet." }));
+    return;
+  }
+  $("pins").replaceChildren(
+    table(
+      ["Portfolio", "Limit", "Quake range", "Rain range", "Base", "Across the range", "Uplift", "Evaluations", ""],
+      pins.map((p) => {
+        const load = el("button", { type: "button", class: "link", text: "Load" });
+        load.addEventListener("click", async () => {
+          await loadDefaults(p.payload.example, p.payload.synthetic_countries);
+          for (const name of FIELDS) if (name in p.payload) $(name).value = p.payload[name];
+          $("compare_grid").checked = Boolean(p.payload.compare_grid);
+          syncSliders();
+          showView("decision");
+          calculate();
+        });
+        const remove = el("button", { type: "button", class: "link", text: "Remove" });
+        remove.addEventListener("click", () => {
+          store.set(PIN_KEY, store.get(PIN_KEY, []).filter((x) => x.id !== p.id));
+          renderPins();
+        });
+        return [
+          `${p.portfolio}${p.synthetic ? " (synthetic)" : ""}`,
+          fmt.pct(p.limit, 2),
+          `${p.quake[0]}x to ${p.quake[1]}x`,
+          `${(100 * p.rain[0]).toFixed(0)}% to ${(100 * p.rain[1]).toFixed(0)}%`,
+          fmt.usdM(p.base),
+          p.resolved ? fmt.usdM(p.upper) : `${fmt.usdM(p.lower)} to ${fmt.usdM(p.upper)}`,
+          fmt.usdM(p.upper - p.base),
+          p.evaluations,
+          el("span", { class: "actions" }, [load, remove]),
+        ];
+      }),
+    ),
+  );
+}
+
+// --- evidence and method ----------------------------------------------------------------
+
+async function loadEvidence() {
+  if (state.evidence) return state.evidence;
+  const { body } = await api("/api/evidence");
+  state.evidence = body;
+  return body;
+}
+
+function kpi(value, label, note) {
+  return el("div", { class: "kpi" }, [el("p", { class: "kpi-value", text: value }), el("p", { class: "kpi-label", text: label }), el("p", { class: "kpi-note", text: note })]);
+}
+
+const TRACK = { adb_drb: "ADB term", worldbank_elt: "World Bank annual" };
+
+async function renderEvidence() {
+  const e = await loadEvidence();
+  const bench = e.benchmark;
+  const val = e.validation;
+  const kpis = [];
+  if (bench) {
+    const t = bench.totals;
+    kpis.push(kpi(`${t.metric_passes}/${t.metric_checks}`, "Official metric checks passed", `${t.cases_passing}/${t.cases} cases, ${t.valid_runs}/${t.runs} runs valid`));
+  }
+  if (val) {
+    kpis.push(kpi(`${val.summary.passed}/${val.summary.checks}`, "Proposal and cross-checks agree", `${val.summary.discrepancies.length} discrepancies recorded below`));
+    const cross = val.checks.find((c) => c.check.startsWith("Tensor contraction vs state-space"));
+    if (cross) kpis.push(kpi(fmt.sci(cross.computed), "Max deviation from exact solver", "36 interior points, 2 to 5 countries"));
+  }
+  if (bench) kpis.push(kpi(fmt.sci(bench.totals.worst_normalised_rmse), "Worst error / tolerance", "Across all 65 official checks"));
+  $("evidence-kpis").replaceChildren(...kpis);
+
+  if (bench) {
+    const practice = bench.practice || {};
+    $("benchmark-note").textContent = `Organizer's unmodified evaluator, ${practice.repeats ?? "?"} fresh-process repeats per case, on ${practice.platform ?? "Linux"}. Practice suite protocol-eligible: ${practice.protocol_eligible ? "yes" : "no"}. ADB targets are term probabilities and USD; World Bank targets are annual rates. Timings stay in the evaluator reports.`;
+    const rows = [];
+    for (const suite of ["public", "practice"]) {
+      for (const c of bench[suite]?.cases || []) {
+        const baselines = el(
+          "span",
+          { class: "actions" },
+          Object.entries(c.baseline_accuracy_pass).map(([name, ok]) => chip(name, ok ? "pass" : "fail")),
+        );
+        rows.push([
+          suite === "public" ? `Public: ${c.case}` : `Practice: ${c.case}`,
+          TRACK[c.track] || c.track,
+          c.countries.join(", "),
+          chip(c.team_accuracy_pass ? "Pass" : "Fail", c.team_accuracy_pass ? "pass" : "fail"),
+          fmt.sci(c.worst_normalised_rmse),
+          `${c.valid_runs}/${c.runs}`,
+          baselines,
+        ]);
+      }
+    }
+    $("benchmark-table").replaceChildren(table(["Case", "Track", "Countries", "ReserveBound", "Worst error / tolerance", "Valid runs", "Classical baselines (organizer)"], rows));
+  }
+  if (val) {
+    $("validation-note").textContent = `Recomputed ${val.generated_utc} by engine ${val.engine_version}. ${val.counting_rule}`;
+    $("validation-table").replaceChildren(
+      table(
+        [{ label: "Check", wrap: true }, "Proposal / target", "Computed", "Status", { label: "Note", wrap: true }],
+        val.checks.map((c) => [
+          el("span", {}, [el("span", { class: "cell-group", text: c.group }), c.check]),
+          String(c.proposal_target),
+          String(c.computed_display),
+          chip(c.status === "pass" ? "Agrees" : "Discrepancy", c.status === "pass" ? "pass" : "warn"),
+          el("span", { text: c.note }),
+        ]),
+        { className: "dense" },
+      ),
+    );
+    for (const row of $("validation-table").querySelectorAll("tbody tr")) {
+      row.children[0].classList.add("wrap");
+      row.children[1].classList.add("wrap");
+      row.children[4].classList.add("wrap");
+    }
+    pairedBars(
+      $("evals-chart"),
+      val.reserve_table.map((row) => ({ label: row.portfolio, a: row.adaptive_evaluations, b: row.grid_evaluations })),
+      { left: 200 },
+    );
+    $("evals-table").replaceChildren(
+      table(
+        ["Portfolio / limit", "Adaptive", "Evaluations", "16x16 grid", "Evaluations"],
+        val.reserve_table.map((r) => [r.portfolio, r.reserve, r.adaptive_evaluations, r.grid, r.grid_evaluations]),
+      ),
+    );
+    const memory = Object.fromEntries((val.memory || []).map((m) => [m.countries, m.peak_traced_mib]));
+    $("scaling-table").replaceChildren(
+      table(
+        ["Countries", "Joint country states", "Payout levels", "Tensor entries", "Peak memory (MiB)"],
+        e.complexity.map((c) => [c.countries, c.joint_country_states, fmt.num(c.payout_levels), fmt.num(c.tensor_entries), memory[c.countries] ?? "n/a"]),
+      ),
+    );
+  }
+}
+
+function renderQuantum(study, source) {
+  $("quantum-scope").textContent = study.scope || "Ideal noiseless statevector simulation on the CPU; no hardware and no speed-up claim.";
+  const s = study.query_study || study;
+  queryChart($("quantum-chart"), s);
+  const last = s.rows[s.rows.length - 1];
+  $("quantum-note").textContent = `${source}: P(L > ${fmt.usdM(s.amount_usd)}) = ${fmt.pct(s.probability)} on ${s.qubits} qubits (${s.attained_levels} payout levels). Statevector matches theory to ${fmt.sci(s.statevector_vs_analytic_max_error)}. At ${fmt.num(last.queries)} queries, amplitude estimation RMSE ${fmt.sci(last.qae_rmse)} vs Monte Carlo ${fmt.sci(last.monte_carlo_rmse)} (${(last.monte_carlo_rmse / last.qae_rmse).toFixed(1)}x lower). ${s.shots_per_power} shots per Grover power, ${s.repeats} repeats.`;
+}
+
+async function renderMethod() {
+  tensorDiagram($("tensor"));
+  const e = await loadEvidence();
+  if (state.quantum) renderQuantum(state.quantum, "Current inputs");
+  else if (e.quantum) renderQuantum(e.quantum, "Recorded study, public two-bond base case");
+  if (e.quantum) {
+    $("resources-table").replaceChildren(
+      table(
+        ["Case", "Precision (95%)", "Qubits", "CX: loading", "CX per Grover step", "Depth per step", "Grover depth", "QAE queries", "Monte Carlo queries"],
+        e.quantum.resources.map((r) => [
+          r.case,
+          `±${fmt.pct(r.epsilon, 2)}`,
+          r.qubits,
+          fmt.num(r.cx_loading),
+          fmt.num(r.cx_per_grover_iterate),
+          fmt.num(r.depth_per_grover_iterate),
+          fmt.num(r.qae_grover_depth),
+          fmt.num(r.qae_queries_95),
+          fmt.num(r.monte_carlo_queries_95),
+        ]),
+        { className: "dense" },
+      ),
+    );
+  }
+}
+
+async function runQuantum() {
+  if (!state.lastPayload) return;
+  $("run-quantum").disabled = true;
+  $("quantum-note").textContent = "Simulating amplitude estimation on the current base assumptions...";
+  try {
+    const { body } = await post("/api/quantum", state.lastPayload);
+    state.quantum = body;
+    renderQuantum(body, `Current inputs (${body.pool}${body.synthetic ? ", synthetic" : ""})`);
+  } catch (error) {
+    $("quantum-note").textContent = `Check failed: ${(error.messages || [error.message]).join("; ")}`;
+  } finally {
+    $("run-quantum").disabled = false;
+  }
+}
+
+// --- views and export -------------------------------------------------------------------
+
+function showView(view) {
+  state.view = view;
+  for (const section of document.querySelectorAll(".view")) section.hidden = section.dataset.view !== view;
+  for (const tab of document.querySelectorAll(".tab")) {
+    if (tab.dataset.view === view) tab.setAttribute("aria-current", "page");
+    else tab.removeAttribute("aria-current");
+  }
+  if (window.location.hash !== `#${view}`) history.replaceState(null, "", `#${view}`);
+  const fail = (error) => console.error(error);
+  if (view === "scenarios") {
+    runSweep();
+    renderPins();
+  } else if (view === "evidence") renderEvidence().catch(fail);
+  else if (view === "method") renderMethod().catch(fail);
+  else if (state.lastResult) renderDecisionCharts(state.lastResult);
 }
 
 async function download(format) {
   if (!state.lastPayload) return;
-  const button = $(format === "json" ? "export-json" : "export-md");
-  button.disabled = true;
+  $("export-menu").open = false;
   try {
     const { body, response } = await api(`/api/export?format=${format}`, {
       method: "POST",
@@ -546,48 +666,78 @@ async function download(format) {
     setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   } catch (error) {
     showErrors(error.messages || [error.message]);
-  } finally {
-    button.disabled = state.dirty;
   }
+}
+
+function openReport() {
+  if (!state.lastPayload) return;
+  $("export-menu").open = false;
+  if (!store.set(REPORT_KEY, state.lastPayload)) {
+    showErrors(["This browser blocks local storage, so the report page cannot receive the inputs."]);
+    return;
+  }
+  window.open("/report", "_blank", "noopener");
 }
 
 async function init() {
   const { body } = await api("/api/examples");
   $("example").replaceChildren(...body.examples.map((e) => el("option", { value: e.id, text: e.label })));
   await loadDefaults("public-two-bond", 5);
-  $("inputs").addEventListener("submit", runCalculation);
+  $("inputs").addEventListener("submit", calculate);
   $("inputs").addEventListener("input", (event) => {
-    if (event.target.id !== "example" && event.target.id !== "synthetic_countries") setDirty(true);
+    const id = event.target.id;
+    if (id === "example" || id === "synthetic_countries" || id === "auto") return;
+    for (const [slider, input] of SLIDERS) {
+      if (id === slider) $(input).value = event.target.value;
+      if (id === input) $(slider).value = event.target.value;
+    }
+    scheduleAuto();
   });
   $("example").addEventListener("change", async () => {
     await loadDefaults($("example").value, $("synthetic_countries").value || 5);
-    setDirty(true);
+    scheduleAuto();
   });
+  $("synthetic_countries").addEventListener("input", () => ($("countries-out").textContent = $("synthetic_countries").value));
   $("synthetic_countries").addEventListener("change", async () => {
     try {
+      // A new country count rebuilds the country table only; other settings stay.
       await loadDefaults("synthetic-chain", $("synthetic_countries").value, true);
-      setDirty(true);
+      scheduleAuto();
     } catch (error) {
       showErrors(error.messages || [error.message]);
     }
   });
-  $("reset").addEventListener("click", () =>
-    loadDefaults($("example").value, $("synthetic_countries").value || 5).then(() => setDirty(true)),
-  );
+  $("reset").addEventListener("click", () => loadDefaults($("example").value, $("synthetic_countries").value || 5).then(scheduleAuto));
+  $("pin").addEventListener("click", pinCurrent);
+  $("clear-pins").addEventListener("click", () => {
+    store.set(PIN_KEY, []);
+    renderPins();
+  });
+  $("run-sweep").addEventListener("click", () => runSweep(true));
+  $("run-quantum").addEventListener("click", runQuantum);
   $("export-json").addEventListener("click", () => download("json"));
   $("export-md").addEventListener("click", () => download("md"));
+  $("export-pdf").addEventListener("click", openReport);
   $("toggle-table").addEventListener("click", () => {
-    const table = $("key-table");
-    table.hidden = !table.hidden;
-    $("toggle-table").setAttribute("aria-expanded", String(!table.hidden));
-    $("toggle-table").textContent = table.hidden ? "Show table" : "Hide table";
+    const t = $("key-table");
+    t.hidden = !t.hidden;
+    $("toggle-table").setAttribute("aria-expanded", String(!t.hidden));
+    $("toggle-table").textContent = t.hidden ? "Table" : "Hide table";
   });
+  for (const tab of document.querySelectorAll(".tab")) tab.addEventListener("click", () => showView(tab.dataset.view));
   let resizeTimer;
   window.addEventListener("resize", () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => state.lastResult && renderChart(state.lastResult.chart), 150);
+    resizeTimer = setTimeout(() => showView(state.view), 180);
   });
-  await runCalculation();
+  window.addEventListener("hashchange", () => {
+    const view = window.location.hash.replace("#", "");
+    if (["decision", "scenarios", "evidence", "method"].includes(view) && view !== state.view) showView(view);
+  });
+  setDirty(false);
+  await calculate();
+  const initial = window.location.hash.replace("#", "");
+  if (["scenarios", "evidence", "method"].includes(initial)) showView(initial);
 }
 
 init().catch((error) => {

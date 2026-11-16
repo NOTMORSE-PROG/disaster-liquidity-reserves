@@ -3,172 +3,292 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Liquidity Reserve Sizing</title>
+  <title>ReserveBound</title>
+  <meta name="description" content="Size a regional disaster liquidity reserve that holds across a range of overlapping shared-shock assumptions.">
   <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/styles.css">
-  <script src="/static/app.js" defer></script>
+  <script type="module" src="/static/app.js"></script>
 </head>
 <body>
-  <header class="masthead">
-    <div class="masthead-inner">
-      <p class="eyebrow">Regional disaster risk pool</p>
-      <h1>Liquidity reserve sizing under overlapping shocks</h1>
-      <p class="lede">Find the smallest reserve whose chance of running short stays within the risk limit across a range of shared earthquake and rain assumptions. If the minimum is not resolved, the app returns the remaining bracket.</p>
+  <a class="skip" href="#main">Skip to results</a>
+  <header class="appbar">
+    <div class="appbar-inner">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7"></rect><path d="M6 9h4v4h4v4h4v4h4v4h4"></path></svg>
+        <div>
+          <p class="brand-name">ReserveBound</p>
+          <p class="brand-tag">Disaster liquidity reserves under overlapping regional shocks</p>
+        </div>
+      </div>
+      <nav class="tabs" aria-label="Views">
+        <button class="tab" data-view="decision" aria-current="page">Decision</button>
+        <button class="tab" data-view="scenarios">Scenarios</button>
+        <button class="tab" data-view="evidence">Evidence</button>
+        <button class="tab" data-view="method">Method</button>
+      </nav>
+      <div class="appbar-actions">
+        <details class="menu" id="export-menu">
+          <summary class="button secondary">Export</summary>
+          <div class="menu-panel">
+            <button type="button" id="export-pdf">PDF report</button>
+            <button type="button" id="export-json">JSON data</button>
+            <button type="button" id="export-md">Markdown summary</button>
+          </div>
+        </details>
+      </div>
     </div>
   </header>
 
-  <main class="layout">
-    <form id="inputs" class="panel inputs" novalidate>
-      <h2>Inputs</h2>
+  <div class="shell">
+    <form id="inputs" class="rail" novalidate aria-label="Inputs">
+      <div class="rail-section">
+        <label class="field">
+          <span class="field-label">Portfolio</span>
+          <select id="example" name="example"></select>
+        </label>
+        <label class="field" id="countries-field" hidden>
+          <span class="field-label">Countries in the chain <output id="countries-out"></output></span>
+          <input id="synthetic_countries" type="range" min="2" max="20" step="1">
+        </label>
+        <p id="synthetic-badge" class="badge badge-synthetic" hidden>Synthetic example: illustrative inputs, not ADB or country data.</p>
+        <p id="example-description" class="hint"></p>
+      </div>
 
-      <label class="field">
-        <span>Example</span>
-        <select id="example" name="example"></select>
-      </label>
-      <label class="field" id="countries-field" hidden>
-        <span>Synthetic countries in the chain</span>
-        <input id="synthetic_countries" name="synthetic_countries" type="number" min="2" max="20" step="1">
-      </label>
-      <p id="synthetic-badge" class="badge badge-synthetic" hidden>Synthetic example: illustrative inputs, not ADB or country data.</p>
-      <p id="example-description" class="hint"></p>
-
-      <label class="field">
-        <span>Risk limit: chance of running short over the term (%)</span>
-        <input id="risk_limit_percent" name="risk_limit_percent" type="number" min="0" max="100" step="0.1" inputmode="decimal">
-      </label>
-
-      <fieldset>
-        <legend>Shared earthquake rate (multiple of the base shared rate)</legend>
-        <div class="pair">
-          <label class="field"><span>Low</span><input id="earthquake_multiplier_low" type="number" min="0" step="0.1" inputmode="decimal"></label>
-          <label class="field"><span>High</span><input id="earthquake_multiplier_high" type="number" min="0" step="0.1" inputmode="decimal"></label>
+      <div class="rail-section">
+        <div class="field">
+          <span class="field-label">Risk limit <span class="field-help">chance of running short over the term</span></span>
+          <div class="slider-row">
+            <input id="risk_slider" type="range" min="0.1" max="5" step="0.05" aria-label="Risk limit slider">
+            <label class="unit-input"><input id="risk_limit_percent" type="number" min="0" max="100" step="0.05" inputmode="decimal" aria-label="Risk limit (%)"><span>%</span></label>
+          </div>
         </div>
-      </fieldset>
-
-      <fieldset>
-        <legend>Shared rain rate (% of the smaller neighbouring rain rate)</legend>
-        <div class="pair">
-          <label class="field"><span>Low</span><input id="rain_share_percent_low" type="number" min="0" max="100" step="1" inputmode="decimal"></label>
-          <label class="field"><span>High</span><input id="rain_share_percent_high" type="number" min="0" max="100" step="1" inputmode="decimal"></label>
+        <div class="field">
+          <span class="field-label">Shared earthquake rate <span class="field-help">multiple of the base shared rate</span></span>
+          <div class="pair">
+            <label class="unit-input"><span class="mini">Low</span><input id="earthquake_multiplier_low" type="number" min="0" step="0.1" inputmode="decimal"><span>x</span></label>
+            <label class="unit-input"><span class="mini">High</span><input id="earthquake_multiplier_high" type="number" min="0" step="0.1" inputmode="decimal"><span>x</span></label>
+          </div>
+          <input id="quake_high_slider" type="range" min="0" max="3" step="0.05" aria-label="Shared earthquake high">
         </div>
-      </fieldset>
-
-      <fieldset>
-        <legend>Base assumptions</legend>
-        <div class="pair">
-          <label class="field"><span>Earthquake multiple</span><input id="base_earthquake_multiplier" type="number" min="0" step="0.1" inputmode="decimal"></label>
-          <label class="field"><span>Rain share (%)</span><input id="base_rain_share_percent" type="number" min="0" max="100" step="1" inputmode="decimal"></label>
+        <div class="field">
+          <span class="field-label">Shared rain rate <span class="field-help">% of the smaller neighbouring rain rate</span></span>
+          <div class="pair">
+            <label class="unit-input"><span class="mini">Low</span><input id="rain_share_percent_low" type="number" min="0" max="100" step="1" inputmode="decimal"><span>%</span></label>
+            <label class="unit-input"><span class="mini">High</span><input id="rain_share_percent_high" type="number" min="0" max="100" step="1" inputmode="decimal"><span>%</span></label>
+          </div>
+          <input id="rain_high_slider" type="range" min="0" max="50" step="1" aria-label="Shared rain high">
         </div>
-      </fieldset>
+        <div class="field">
+          <span class="field-label">Base assumptions</span>
+          <div class="pair">
+            <label class="unit-input"><span class="mini">Quake</span><input id="base_earthquake_multiplier" type="number" min="0" step="0.1" inputmode="decimal"><span>x</span></label>
+            <label class="unit-input"><span class="mini">Rain</span><input id="base_rain_share_percent" type="number" min="0" max="100" step="1" inputmode="decimal"><span>%</span></label>
+          </div>
+        </div>
+      </div>
 
-      <details>
-        <summary>Countries, payout caps and loss rates</summary>
-        <p class="hint">Annual trigger rates and contractual payouts. Earthquake payments accumulate in quarter steps to the cap; rain pays once over the term.</p>
+      <details class="rail-section">
+        <summary>Countries, caps and loss rates</summary>
+        <p class="hint">Annual trigger rates and contractual payouts. Earthquake payments accumulate in quarter steps to the cap; rain pays once.</p>
         <div class="table-scroll">
           <table class="country-table">
-            <thead><tr><th scope="col">Country</th><th scope="col">Earthquake rate / yr</th><th scope="col">Rain rate / yr</th><th scope="col">Earthquake cap (USD)</th><th scope="col">Rain payment (USD)</th></tr></thead>
+            <thead><tr><th scope="col">Country</th><th scope="col">Quake / yr</th><th scope="col">Rain / yr</th><th scope="col">Quake cap USD</th><th scope="col">Rain USD</th></tr></thead>
             <tbody id="country-rows"></tbody>
           </table>
         </div>
       </details>
 
-      <details>
+      <details class="rail-section">
         <summary>Calculation settings</summary>
-        <label class="field"><span>Term (years)</span><input id="term_years" type="number" min="1" max="30" step="1"></label>
-        <label class="field"><span>Accept a bracket this wide (USD)</span><input id="gap_usd" type="number" min="0" step="250000"></label>
-        <label class="field"><span>Evaluation budget (distribution evaluations)</span><input id="max_evaluations" type="number" min="7" max="20000" step="1"></label>
-        <label class="check"><input id="compare_grid" type="checkbox"> Compare with a uniform grid</label>
-        <label class="field"><span>Grid cells per axis</span><input id="grid_subdivisions" type="number" min="1" max="32" step="1"></label>
+        <label class="field"><span class="field-label">Term (years)</span><input id="term_years" type="number" min="1" max="30" step="1"></label>
+        <label class="field"><span class="field-label">Accept a bracket this wide (USD)</span><input id="gap_usd" type="number" min="0" step="250000"></label>
+        <label class="field"><span class="field-label">Evaluation budget</span><input id="max_evaluations" type="number" min="7" max="20000" step="1"></label>
+        <label class="check"><input id="compare_grid" type="checkbox"> Measure a uniform grid for comparison</label>
+        <label class="field"><span class="field-label">Grid cells per axis</span><input id="grid_subdivisions" type="number" min="1" max="32" step="1"></label>
       </details>
 
       <div id="errors" class="errors" role="alert" aria-live="assertive" tabindex="-1" hidden></div>
-
-      <div class="actions">
-        <button id="calculate" type="submit" class="primary">Calculate reserve</button>
-        <button id="reset" type="button" class="secondary">Reset example</button>
+      <div class="rail-actions">
+        <label class="check"><input id="auto" type="checkbox" checked> Update as I edit</label>
+        <div class="actions">
+          <button id="calculate" type="submit" class="button primary">Calculate</button>
+          <button id="reset" type="button" class="button secondary">Reset</button>
+        </div>
+        <p id="dirty-note" class="hint" hidden>Inputs changed since the last result.</p>
       </div>
-      <p id="dirty-note" class="hint" hidden>Inputs changed since the last calculation. Calculate again before exporting.</p>
     </form>
 
-    <section id="results" class="results" aria-live="polite">
-      <div id="placeholder" class="panel placeholder">
-        <p>Loading the public two-bond example...</p>
-      </div>
+    <main id="main" class="stage" aria-live="polite">
+      <div id="busy" class="busy" hidden><span class="spinner" aria-hidden="true"></span><span>Calculating</span></div>
 
-      <div id="result-body" hidden>
-        <div id="status" class="status"></div>
-        <ul id="messages" class="messages"></ul>
+      <!-- Decision -->
+      <section id="view-decision" class="view" data-view="decision">
+        <div id="placeholder" class="card placeholder"><p>Loading the public two-bond example...</p></div>
+        <div id="decision-body" hidden>
+          <ul id="messages" class="messages"></ul>
+          <article class="card verdict">
+            <div class="verdict-main">
+              <p class="eyebrow" id="verdict-eyebrow"></p>
+              <p class="verdict-value" id="verdict-value"></p>
+              <p class="verdict-text" id="verdict-text"></p>
+              <div class="verdict-actions">
+                <span id="verdict-status" class="pill"></span>
+                <button id="pin" type="button" class="button ghost">Pin scenario</button>
+              </div>
+            </div>
+            <dl class="verdict-stats">
+              <div><dt>Base assumptions</dt><dd id="stat-base"></dd><p class="stat-note" id="stat-base-note"></p></div>
+              <div><dt>Dependence uplift</dt><dd id="stat-uplift"></dd><p class="stat-note" id="stat-uplift-note"></p></div>
+              <div><dt>Proof cost</dt><dd id="stat-evals"></dd><p class="stat-note" id="stat-evals-note"></p></div>
+            </dl>
+          </article>
 
-        <div class="tiles">
-          <div class="tile">
-            <p class="tile-label">Base reserve</p>
-            <p class="tile-value" id="tile-base"></p>
-            <p class="tile-note" id="tile-base-note"></p>
+          <div class="proof-grid">
+            <article class="card proof">
+              <p class="proof-kicker">Necessary</p>
+              <h2>Why a smaller reserve falls short</h2>
+              <div class="meter" id="shortfall-meter"></div>
+              <p id="shortfall-text"></p>
+              <details><summary>Scenario rates</summary><div id="shortfall-detail" class="table-scroll"></div></details>
+            </article>
+            <article class="card proof">
+              <p class="proof-kicker">Sufficient</p>
+              <h2>Why the upper amount is enough</h2>
+              <div class="meter" id="sufficiency-meter"></div>
+              <p id="sufficiency-text"></p>
+              <details><summary>Tightest cell and its dominating model</summary><div id="sufficiency-detail" class="table-scroll"></div></details>
+            </article>
           </div>
-          <div class="tile tile-accent">
-            <p class="tile-label">Reserve across the range</p>
-            <p class="tile-value" id="tile-range"></p>
-            <p class="tile-note" id="tile-range-note"></p>
+
+          <div class="chart-grid">
+            <article class="card">
+              <div class="card-head">
+                <h2>Chance that payouts exceed a reserve</h2>
+                <button id="toggle-table" type="button" class="link" aria-expanded="false">Table</button>
+              </div>
+              <div class="legend" id="curve-legend"></div>
+              <div id="curve" class="chart" role="img"></div>
+              <div id="key-table" class="table-scroll" hidden></div>
+              <p class="hint">Log scale. Exceedance is strict: a payout equal to the reserve is covered.</p>
+            </article>
+            <article class="card">
+              <div class="card-head"><h2>Where the decision binds</h2></div>
+              <div class="legend" id="map-legend"></div>
+              <div id="map" class="chart" role="img"></div>
+              <p class="hint" id="map-note"></p>
+            </article>
           </div>
-          <div class="tile">
-            <p class="tile-label">Distribution evaluations</p>
-            <p class="tile-value" id="tile-evals"></p>
-            <p class="tile-note" id="tile-evals-note"></p>
+
+          <div class="chart-grid">
+            <article class="card">
+              <div class="card-head"><h2>What drives a shortfall</h2></div>
+              <p class="hint" id="drivers-note"></p>
+              <div id="drivers" class="chart" role="img"></div>
+              <div class="legend"><span class="legend-item"><span class="swatch bar-a-swatch"></span>Expected payout when the smaller reserve falls short</span><span class="legend-item"><span class="swatch track-swatch"></span>Payout cap</span></div>
+            </article>
+            <article class="card">
+              <div class="card-head"><h2>Regional chain</h2></div>
+              <p class="hint">Circle size shows each country's total cap. Line width shows the shared earthquake rate in the supporting scenario; the dashed line is the shared rain source.</p>
+              <div id="chain" class="chart chain" role="img"></div>
+            </article>
+          </div>
+
+          <div class="chart-grid">
+            <article class="card">
+              <h2>Assumptions behind the result</h2>
+              <ul id="assumptions" class="list"></ul>
+            </article>
+            <article class="card">
+              <h2>Checks on this result</h2>
+              <ul id="checks" class="checks"></ul>
+            </article>
           </div>
         </div>
+      </section>
 
-        <article class="panel">
-          <div class="panel-head">
-            <h2>Chance that payouts exceed a reserve</h2>
-            <button id="toggle-table" type="button" class="link" aria-expanded="false">Show table</button>
+      <!-- Scenarios -->
+      <section id="view-scenarios" class="view" data-view="scenarios" hidden>
+        <article class="card">
+          <div class="card-head">
+            <h2>Reserve against the risk limit</h2>
+            <button id="run-sweep" type="button" class="button secondary">Recalculate sweep</button>
           </div>
-          <div id="legend" class="legend"></div>
-          <div id="chart" class="chart" role="img"></div>
-          <div id="chart-tooltip" class="tooltip" hidden></div>
-          <div id="key-table" class="table-scroll" hidden></div>
-          <p class="hint">Log scale. Exceedance is strict: a payout equal to the reserve is covered. The certified bound holds for every assumption in the range.</p>
+          <p class="hint" id="sweep-note">Uses the current portfolio and range at several risk limits.</p>
+          <div class="legend"><span class="legend-item"><span class="swatch s-observed"></span>Reserve across the range</span><span class="legend-item"><span class="swatch s-base"></span>Base assumptions</span><span class="legend-item"><span class="swatch band-swatch"></span>Unresolved bracket</span></div>
+          <div id="sweep" class="chart" role="img"></div>
+          <div id="sweep-table" class="table-scroll"></div>
         </article>
+        <article class="card">
+          <div class="card-head">
+            <h2>Pinned scenarios</h2>
+            <button id="clear-pins" type="button" class="link">Clear</button>
+          </div>
+          <p class="hint">Pin results from the Decision view to compare portfolios, limits and ranges side by side. Pins stay in this browser only.</p>
+          <div id="pins" class="table-scroll"></div>
+        </article>
+      </section>
 
-        <div class="two-up">
-          <article class="panel">
-            <h2>Why a smaller reserve falls short</h2>
-            <p id="shortfall-text"></p>
-            <div id="shortfall-detail" class="table-scroll"></div>
+      <!-- Evidence -->
+      <section id="view-evidence" class="view" data-view="evidence" hidden>
+        <div class="kpis" id="evidence-kpis"></div>
+        <article class="card">
+          <h2>Official benchmark: evaluation-v1, classical_cpu</h2>
+          <p class="hint" id="benchmark-note"></p>
+          <div id="benchmark-table" class="table-scroll"></div>
+        </article>
+        <article class="card">
+          <h2>Technical proposal figures, recomputed</h2>
+          <p class="hint" id="validation-note"></p>
+          <div id="validation-table" class="table-scroll"></div>
+        </article>
+        <div class="stack">
+          <article class="card">
+            <h2>Distribution evaluations: adaptive vs 16x16 grid</h2>
+            <div class="legend"><span class="legend-item"><span class="swatch bar-a-swatch"></span>Adaptive refinement</span><span class="legend-item"><span class="swatch bar-b-swatch"></span>Uniform grid</span></div>
+            <div id="evals-chart" class="chart" role="img"></div>
+            <div id="evals-table" class="table-scroll"></div>
           </article>
-          <article class="panel">
-            <h2>Why the upper amount is sufficient</h2>
-            <p id="sufficiency-text"></p>
-            <div id="sufficiency-detail" class="table-scroll"></div>
+          <article class="card">
+            <h2>How the contraction scales</h2>
+            <p class="hint">A full joint table would hold 10<sup>N</sup> country states. The tensor chain touches a fixed number of entries per country and one payout register.</p>
+            <div id="scaling-table" class="table-scroll"></div>
           </article>
         </div>
+      </section>
 
-        <article class="panel">
-          <h2>Assumptions behind the result</h2>
-          <ul id="assumptions" class="assumptions"></ul>
+      <!-- Method -->
+      <section id="view-method" class="view" data-view="method" hidden>
+        <article class="card prose">
+          <h2>How ReserveBound reaches a decision</h2>
+          <ol class="steps">
+            <li><strong>Model the payouts.</strong> Each country has calibrated earthquake and rain trigger rates and contractual caps. Each neighbouring pair shares its own earthquake and rain sources. Private rates are the marginal rates minus the shared rates, so every country's own event frequency stays fixed whatever the dependence.</li>
+            <li><strong>Contract the tensor chain.</strong> A country tensor links its payout to the shared shocks on its left and right. Sweeping along the chain adds each payout to a register and sums out a shared shock once both neighbours are done. The bond carries 10 states, whatever the number of countries.</li>
+            <li><strong>Bound the minimum reserve.</strong> Feasible scenarios (corners, cell centres, the base point) prove an amount is too small. For each cell of the range, a dominating model with the cell's highest shared and private rates proves an amount is enough everywhere in the cell. Only cells that can change the decision are split.</li>
+            <li><strong>Report the decision.</strong> When the bounds meet, the minimum is resolved. Otherwise the remaining bracket is returned with the scenario that defeats the lower amount.</li>
+          </ol>
+          <div id="tensor" class="chart" role="img" aria-label="Tensor chain: country tensors linked by shared-state bonds, each adding its payout to a running register."></div>
         </article>
-
-        <article class="panel">
-          <h2>Validation status</h2>
-          <ul id="checks" class="checks"></ul>
-          <div id="recorded"></div>
-        </article>
-
-        <article class="panel export">
-          <div>
-            <h2>Export</h2>
-            <p class="hint">Inputs, reserve bounds, the supporting scenario, the exceedance table and validation status from the last calculation.</p>
+        <article class="card">
+          <div class="card-head">
+            <h2>Quantum track: amplitude estimation of P(payout &gt; reserve)</h2>
+            <button id="run-quantum" type="button" class="button secondary">Run on current inputs</button>
           </div>
-          <div class="actions">
-            <button id="export-json" type="button" class="secondary">Download JSON</button>
-            <button id="export-md" type="button" class="secondary">Download Markdown</button>
-          </div>
+          <p class="hint" id="quantum-scope"></p>
+          <div class="legend"><span class="legend-item"><span class="swatch s-base"></span>Amplitude estimation (ideal simulator)</span><span class="legend-item"><span class="swatch s-observed"></span>Monte Carlo, same queries</span></div>
+          <div id="quantum-chart" class="chart" role="img"></div>
+          <p class="hint" id="quantum-note"></p>
         </article>
-      </div>
-    </section>
-  </main>
+        <article class="card">
+          <h2>Quantum resource estimate</h2>
+          <p class="hint">Compiled with Qiskit to rz, sx, x and cx gates with all-to-all connectivity. Query counts are for a 95% half-width of the stated precision.</p>
+          <div id="resources-table" class="table-scroll"></div>
+        </article>
+      </section>
+    </main>
+  </div>
 
   <footer class="footer">
-    <p>Mark Andrei Condino, sole applicant. ADB Quantum Innovation Challenge prototype. Public inputs: organizer's joint-loss benchmark (code Apache 2.0; World Bank data CC BY 4.0). Results are demonstrations under the stated assumptions, not advice for a live financing decision.</p>
+    <p>ReserveBound prototype by Mark Andrei Condino, sole applicant, ADB Quantum Innovation Challenge. Public inputs come from the organizer's joint-loss benchmark (code Apache 2.0, World Bank data CC BY 4.0). Results are demonstrations under the stated assumptions, not advice for a live financing decision.</p>
   </footer>
 </body>
 </html>

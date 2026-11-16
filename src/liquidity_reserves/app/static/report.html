@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ReserveBound Report</title>
+  <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/static/report.css">
+  <script type="module" src="/static/report.js"></script>
+</head>
+<body class="report-body">
+  <div class="report-toolbar">
+    <span id="report-state">Preparing the report...</span>
+    <button id="print" type="button" class="button primary" disabled>Save as PDF</button>
+  </div>
+  <main class="sheet" id="sheet" hidden>
+    <header class="report-head">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7"></rect><path d="M6 9h4v4h4v4h4v4h4v4h4"></path></svg>
+        <div>
+          <p class="brand-name">ReserveBound</p>
+          <p class="report-kind">Reserve sizing report</p>
+        </div>
+      </div>
+      <div class="report-meta" id="report-meta"></div>
+    </header>
+    <h1 id="report-title"></h1>
+    <p id="report-synthetic" class="badge badge-synthetic" hidden>Synthetic example: illustrative inputs, not ADB or country data.</p>
+
+    <section class="report-section decision">
+      <div>
+        <p class="eyebrow" id="r-eyebrow"></p>
+        <p class="verdict-value" id="r-value"></p>
+        <p id="r-text"></p>
+      </div>
+      <dl class="report-stats" id="r-stats"></dl>
+    </section>
+
+    <section class="report-section two">
+      <div>
+        <h2>Why a smaller reserve falls short</h2>
+        <p id="r-shortfall"></p>
+      </div>
+      <div>
+        <h2>Why the upper amount is enough</h2>
+        <p id="r-sufficiency"></p>
+      </div>
+    </section>
+
+    <section class="report-section">
+      <h2>Chance that payouts exceed a reserve</h2>
+      <div class="legend" id="r-curve-legend"></div>
+      <div id="r-curve" class="chart"></div>
+    </section>
+
+    <section class="report-section two break-before">
+      <div>
+        <h2>Where the decision binds</h2>
+        <div class="legend" id="r-map-legend"></div>
+        <div id="r-map" class="chart"></div>
+        <p class="hint" id="r-map-note"></p>
+      </div>
+      <div>
+        <h2>What drives a shortfall</h2>
+        <p class="hint" id="r-drivers-note"></p>
+        <div id="r-drivers" class="chart"></div>
+      </div>
+    </section>
+
+    <section class="report-section">
+      <h2>Key amounts</h2>
+      <div id="r-key" class="table-scroll"></div>
+    </section>
+
+    <section class="report-section">
+      <h2>Inputs</h2>
+      <p id="r-range"></p>
+      <div id="r-countries" class="table-scroll"></div>
+    </section>
+
+    <section class="report-section two">
+      <div>
+        <h2>Assumptions</h2>
+        <ul id="r-assumptions" class="list"></ul>
+      </div>
+      <div>
+        <h2>Validation status</h2>
+        <ul id="r-checks" class="checks"></ul>
+        <div id="r-recorded"></div>
+      </div>
+    </section>
+
+    <footer class="report-foot">
+      <p id="r-foot"></p>
+    </footer>
+  </main>
+</body>
+</html>
