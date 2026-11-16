@@ -137,9 +137,39 @@ def test_http_errors_and_static_files(server):
     status, _, _ = request(server, "/api/export?format=xml", default_inputs())
     assert status == 422
     status, headers, body = request(server, "/")
-    assert status == 200 and b"Liquidity Reserve Sizing" in body
+    assert status == 200 and b"<title>ReserveBound</title>" in body
     assert "default-src 'self'" in headers["Content-Security-Policy"]
-    for path in ("/static/app.js", "/static/styles.css", "/favicon.ico"):
+    for path in ("/static/app.js", "/static/charts.js", "/static/report.js", "/favicon.ico"):
         assert request(server, path)[0] == 200
     for path in ("/static/../server.py", "/static/%2e%2e/server.py", "/etc/passwd", "/nope"):
         assert request(server, path)[0] == 404
+
+
+def test_dashboard_insights_are_consistent():
+    result = calculate(default_inputs("public-two-bond"))
+    headline = result["headline"]
+    assert headline["uplift"]["usd"] == "7500000" and headline["uplift_sign"] == 1
+    assert headline["evaluations"] == 7 and headline["grid_evaluations"] == 517
+    grid = result["insights"]["map"]
+    assert max(max(row) for row in grid["reserve_usd"]) == 87_500_000
+    assert grid["witness"] == [2.0, 0.25] and grid["base_in_range"]
+    shares = [c["share_of_shortfall_payouts"] for c in result["insights"]["drivers"]["countries"]]
+    assert sum(shares) == pytest.approx(1)
+    assert len(result["insights"]["chain"]["links"]) == 1
+
+
+def test_sweep_quantum_and_evidence_endpoints(server):
+    payload = default_inputs("public-two-bond")
+    status, _, body = request(server, "/api/sweep", {**payload, "limits_percent": [0.5, 1.5]})
+    rows = json.loads(body)["rows"]
+    assert status == 200 and [r["upper_usd"] for r in rows] == [105_000_000, 87_500_000]
+    status, _, body = request(server, "/api/sweep", {**payload, "limits_percent": [150]})
+    assert status == 422
+    status, _, body = request(server, "/api/quantum", payload)
+    check = json.loads(body)
+    assert status == 200 and check["qubits"] == 6
+    assert check["probability"] == pytest.approx(check["exact_from_contraction"], abs=1e-15)
+    status, _, body = request(server, "/api/evidence")
+    data = json.loads(body)
+    assert status == 200 and data["complexity"][0]["countries"] == 2
+    assert request(server, "/report")[0] == 200
