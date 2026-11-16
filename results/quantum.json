@@ -1,0 +1,194 @@
+{
+  "schema": "dlr-quantum-v1",
+  "scope": "Ideal noiseless statevector simulation on a CPU; no hardware, no speed-up claim.",
+  "query_study": {
+    "probability": 0.012046720907534038,
+    "amount_usd": 80000000.0,
+    "register_qubits": 5,
+    "qubits": 6,
+    "attained_levels": 27,
+    "shots_per_power": 100,
+    "repeats": 200,
+    "seed": 20261113,
+    "statevector_vs_analytic_max_error": 8.659739592076221e-15,
+    "rows": [
+      {
+        "max_power": 0,
+        "queries": 100,
+        "qae_rmse": 0.010162526200431813,
+        "qae_median_abs_error": 0.007953279538957601,
+        "monte_carlo_rmse": 0.01090944426765636
+      },
+      {
+        "max_power": 1,
+        "queries": 400,
+        "qae_rmse": 0.0034672572862221055,
+        "qae_median_abs_error": 0.0024902000432787345,
+        "monte_carlo_rmse": 0.00545472213382818
+      },
+      {
+        "max_power": 2,
+        "queries": 900,
+        "qae_rmse": 0.0018921483620768244,
+        "qae_median_abs_error": 0.0013221385781395324,
+        "monte_carlo_rmse": 0.00363648142255212
+      },
+      {
+        "max_power": 4,
+        "queries": 1800,
+        "qae_rmse": 0.0010665616584276932,
+        "qae_median_abs_error": 0.0007674778186892032,
+        "monte_carlo_rmse": 0.002571380673545507
+      },
+      {
+        "max_power": 8,
+        "queries": 3500,
+        "qae_rmse": 0.0005377350349866296,
+        "qae_median_abs_error": 0.00035605907119307806,
+        "monte_carlo_rmse": 0.0018440326479066797
+      },
+      {
+        "max_power": 16,
+        "queries": 6800,
+        "qae_rmse": 0.0002771071974109179,
+        "qae_median_abs_error": 0.0001835418264144132,
+        "monte_carlo_rmse": 0.0013229644421275375
+      },
+      {
+        "max_power": 32,
+        "queries": 13300,
+        "qae_rmse": 0.0001480254294956811,
+        "qae_median_abs_error": 0.00010020019611360186,
+        "monte_carlo_rmse": 0.0009459687886452592
+      },
+      {
+        "max_power": 64,
+        "queries": 26200,
+        "qae_rmse": 9.686614194115042e-05,
+        "qae_median_abs_error": 6.0680759699453975e-05,
+        "monte_carlo_rmse": 0.0006739877177089505
+      },
+      {
+        "max_power": 128,
+        "queries": 51900,
+        "qae_rmse": 2.607408513522205e-05,
+        "qae_median_abs_error": 1.850574698299655e-05,
+        "monte_carlo_rmse": 0.0004788714539625761
+      },
+      {
+        "max_power": 256,
+        "queries": 103200,
+        "qae_rmse": 2.844014504816015e-05,
+        "qae_median_abs_error": 1.3677421296705121e-05,
+        "monte_carlo_rmse": 0.0003395961666797002
+      }
+    ]
+  },
+  "resources": [
+    {
+      "case": "Public two-bond, base, P(L > $80m)",
+      "probability": 0.01204672090753404,
+      "qubits": 6,
+      "cx_loading": 58,
+      "cx_per_grover_iterate": 200,
+      "depth_per_grover_iterate": 615,
+      "epsilon": 0.001,
+      "qae_grover_depth": 1024,
+      "qae_queries_95": 9216,
+      "monte_carlo_queries_95": 45720,
+      "cx_deepest_circuit": 204800
+    },
+    {
+      "case": "Public two-bond, base, P(L > $80m)",
+      "probability": 0.01204672090753404,
+      "qubits": 6,
+      "cx_loading": 58,
+      "cx_per_grover_iterate": 200,
+      "depth_per_grover_iterate": 615,
+      "epsilon": 0.0001,
+      "qae_grover_depth": 8192,
+      "qae_queries_95": 73728,
+      "monte_carlo_queries_95": 4571950,
+      "cx_deepest_circuit": 1638400
+    },
+    {
+      "case": "Synthetic 5 countries, base",
+      "probability": 0.013537021164240475,
+      "qubits": 11,
+      "cx_loading": 2037,
+      "cx_per_grover_iterate": 4526,
+      "depth_per_grover_iterate": 20574,
+      "epsilon": 0.001,
+      "qae_grover_depth": 1024,
+      "qae_queries_95": 9216,
+      "monte_carlo_queries_95": 51298,
+      "cx_deepest_circuit": 4634624
+    },
+    {
+      "case": "Synthetic 5 countries, base",
+      "probability": 0.013537021164240475,
+      "qubits": 11,
+      "cx_loading": 2037,
+      "cx_per_grover_iterate": 4526,
+      "depth_per_grover_iterate": 20574,
+      "epsilon": 0.0001,
+      "qae_grover_depth": 8192,
+      "qae_queries_95": 73728,
+      "monte_carlo_queries_95": 5129796,
+      "cx_deepest_circuit": 37076992
+    },
+    {
+      "case": "Synthetic 10 countries, base",
+      "probability": 0.014936355478492641,
+      "qubits": 13,
+      "cx_loading": 8179,
+      "cx_per_grover_iterate": 17074,
+      "depth_per_grover_iterate": 72840,
+      "epsilon": 0.001,
+      "qae_grover_depth": 1024,
+      "qae_queries_95": 9216,
+      "monte_carlo_queries_95": 56521,
+      "cx_deepest_circuit": 17483776
+    },
+    {
+      "case": "Synthetic 10 countries, base",
+      "probability": 0.014936355478492641,
+      "qubits": 13,
+      "cx_loading": 8179,
+      "cx_per_grover_iterate": 17074,
+      "depth_per_grover_iterate": 72840,
+      "epsilon": 0.0001,
+      "qae_grover_depth": 8192,
+      "qae_queries_95": 73728,
+      "monte_carlo_queries_95": 5652039,
+      "cx_deepest_circuit": 139870208
+    },
+    {
+      "case": "Synthetic 20 countries, base",
+      "probability": 0.014923866678920737,
+      "qubits": 14,
+      "cx_loading": 16370,
+      "cx_per_grover_iterate": 33592,
+      "depth_per_grover_iterate": 154990,
+      "epsilon": 0.001,
+      "qae_grover_depth": 1024,
+      "qae_queries_95": 9216,
+      "monte_carlo_queries_95": 56474,
+      "cx_deepest_circuit": 34398208
+    },
+    {
+      "case": "Synthetic 20 countries, base",
+      "probability": 0.014923866678920737,
+      "qubits": 14,
+      "cx_loading": 16370,
+      "cx_per_grover_iterate": 33592,
+      "depth_per_grover_iterate": 154990,
+      "epsilon": 0.0001,
+      "qae_grover_depth": 8192,
+      "qae_queries_95": 73728,
+      "monte_carlo_queries_95": 5647385,
+      "cx_deepest_circuit": 275185664
+    }
+  ],
+  "compiler": "Qiskit transpile to rz/sx/x/cx, optimization level 1, all-to-all coupling"
+}
