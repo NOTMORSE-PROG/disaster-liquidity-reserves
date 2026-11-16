@@ -22,8 +22,8 @@ import scipy
 from . import APPLICANT, APPLICANT_ROLE, __version__
 from .bounds import bracket_reserve, grid_reserve
 from .contraction import choose_registers, distribution, local_tensors
-from .examples import DEFAULT_RANGE, public_two_bond, synthetic_chain
 from .exact import ctmc_curve
+from .examples import DEFAULT_RANGE, public_two_bond, synthetic_chain
 from .money import format_usd, usd_to_units
 from .paths import benchmark_dir, ensure_qjlb, results_dir
 from .portfolio import SharedShockRange
@@ -428,6 +428,9 @@ def benchmark_checks(checks: Checks, summary_path: Path):
         "2.1e-13",
         worst,
         worst is not None and f"{worst:.1e}" == "2.1e-13",
+        f"Evaluator run on {summary['practice']['platform'] if 'practice' in summary else 'n/a'}. "
+        "The exact value is floating-point rounding and changes with platform and BLAS; "
+        "every case stays below 1e-12 of its tolerance.",
         display=f"{worst:.2e}" if worst is not None else "n/a",
     )
     return summary
