@@ -4,3 +4,4 @@ benchmark/** -text
 *.npz binary
 *.png binary
 *.pdf binary
+*.jpg binary
