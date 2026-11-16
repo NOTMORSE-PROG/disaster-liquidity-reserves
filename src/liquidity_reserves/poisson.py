@@ -34,6 +34,9 @@ def severity_powers(severity) -> np.ndarray:
     """Row n is the law of min(sum of n severity marks, 4) over 0..4 quarter steps."""
     mark = np.r_[0.0, np.asarray(severity, dtype=float)]
     rows = [np.eye(COUNT_BUCKETS)[0]]
-    for _ in range(MAX_STEPS):
+    for _ in range(MAX_STEPS - 1):
         rows.append(capped_convolve(rows[-1], mark))
+    # Four marks of at least one step each always reach the cap; set the row
+    # exactly rather than as a floating-point sum that can miss 1 by an ulp.
+    rows.append(np.eye(COUNT_BUCKETS)[MAX_STEPS])
     return np.array(rows)
