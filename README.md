@@ -21,6 +21,18 @@ sufficient.
   with live inputs, the evidence behind each bound, scenario comparison, the benchmark
   record, a method page with the quantum amplitude-estimation check, and a PDF report.
 
+![ReserveBound decision view for the public two-bond example](docs/screenshots/decision.jpg)
+
+## What is in this repository
+
+| Item | Where |
+|---|---|
+| Source code | `src/liquidity_reserves/` (engine, app, quantum check, validation), `worker.py`, `scripts/`, `tests/` |
+| Environment specifications and dependencies | `pyproject.toml`, `requirements.txt`, `requirements-dev.txt`, `requirements-quantum.txt`; [Environment and hardware](#environment-and-hardware) |
+| Setup and execution instructions | This README: [Setup](#setup), [Run the app](#run-the-app), [Test](#test), [Run the official benchmark](#run-the-official-benchmark) |
+| Hardware and simulator details | [Environment and hardware](#environment-and-hardware) |
+| Sample results and outputs | [`results/`](results) and [Sample outputs](#sample-outputs) |
+
 ## Setup
 
 Python 3.10 or later. From the repository folder:
@@ -33,7 +45,9 @@ python -m pip install -e .
 ```
 
 `requirements.txt` pins the versions used for the recorded results (numpy 1.26.4,
-scipy 1.15.3). The app uses only the Python standard library on top of those.
+scipy 1.15.3). The app uses only the Python standard library on top of those. For the
+optional circuit resource counts, also run
+`python -m pip install -r requirements-quantum.txt`.
 
 ## Run the app
 
@@ -132,13 +146,47 @@ annual event rates and USD per year. They are computed and reported separately.
 
 ## Environment and hardware
 
-Recorded results come from one CPU workstation: AMD Ryzen 5 9600X (6 cores, 12
-threads), 31 GB RAM, Windows 10 Pro. Tests, validation and the app ran on Windows with
-Python 3.12.10; the organizer's evaluator ran under WSL2 Ubuntu (Linux 6.18, glibc 2.39)
-with Python 3.12.3. Both used numpy 1.26.4 and scipy 1.15.3. No GPU, quantum hardware or
-quantum simulator is used: the tensor-network contraction is the quantum-inspired part
-and runs on the CPU, and the benchmark entry is declared `classical_cpu` with zero shots
-and qubits.
+**Hardware.** One CPU workstation: AMD Ryzen 5 9600X (6 cores, 12 threads), 31 GB RAM.
+No GPU, no quantum hardware and no cloud service were used.
+
+**Operating systems and Python.** Tests, validation, the app and the quantum check ran on
+Windows 10 Pro with Python 3.12.10. The organizer's evaluator, which needs POSIX, ran
+under WSL2 Ubuntu (Linux 6.18, glibc 2.39) with Python 3.12.3. CI runs the tests on
+Ubuntu and Windows with Python 3.10 and 3.12.
+
+**Dependencies.** Pinned versions used for every recorded result:
+
+| File | Contents |
+|---|---|
+| `requirements.txt` | numpy 1.26.4, scipy 1.15.3 (the engine, worker and app need nothing else) |
+| `requirements-dev.txt` | adds pytest 9.2.0 and ruff 0.17.5 |
+| `requirements-quantum.txt` | adds Qiskit 2.2.3 and its dependencies, only to compile circuits for resource counts |
+| `benchmark/pyproject.toml` | the organizer's package (`qjlb` 0.5.0), vendored unmodified |
+
+**Classical computation.** The reserve engine, the benchmark worker and all recorded
+reserve figures run on the CPU. The tensor-network contraction is the quantum-inspired
+part. The benchmark entry is declared `classical_cpu` with zero shots and qubits.
+
+**Simulator.** The amplitude-estimation check uses an ideal, noiseless statevector
+simulation written in NumPy (`src/liquidity_reserves/quantum.py`): 6 qubits for the
+public two-bond case and up to 14 qubits for 20 synthetic countries, with no noise model
+and no error mitigation. Shot counts are drawn from the simulated probabilities with a
+fixed seed (20261113). Resource counts come from the Qiskit 2.2.3 transpiler targeting
+rz, sx, x and cx gates with all-to-all connectivity (optimization level 1, seed 7).
+
+## Sample outputs
+
+| File | What it is |
+|---|---|
+| [`results/samples/public-two-bond-1.5pct-report.pdf`](results/samples/public-two-bond-1.5pct-report.pdf) | PDF reserve report for the public two-bond example at the 1.5% limit |
+| [`results/samples/synthetic-5-countries-1.5pct-report.pdf`](results/samples/synthetic-5-countries-1.5pct-report.pdf) | PDF reserve report for the synthetic five-country chain |
+| [`results/samples/public-two-bond-1.5pct.json`](results/samples/public-two-bond-1.5pct.json), [`.md`](results/samples/public-two-bond-1.5pct.md) | JSON and Markdown exports of the same calculation |
+| [`results/validation.md`](results/validation.md) | Every proposal figure recomputed, with discrepancies |
+| [`results/benchmark/`](results/benchmark) | Official evaluator reports for the public and practice suites |
+| [`results/quantum.json`](results/quantum.json) | Amplitude-estimation study and compiled resource counts |
+| [`docs/screenshots/`](docs/screenshots) | The Decision, Scenarios, Evidence and Method views |
+
+![Where the decision binds: refinement cells for the synthetic five-country chain](docs/screenshots/synthetic-five-countries.jpg)
 
 ## Layout
 
@@ -149,6 +197,8 @@ benchmark/                organizer's benchmark, vendored unmodified (see SHA256
 scripts/                  public-suite packaging, evaluator run, report summary
 tests/                    pytest suite
 results/                  recorded validation, evaluator and quantum-check reports
+results/samples/          sample PDF reports and exports
+docs/screenshots/         screenshots of the app
 ```
 
 ## Method notes
