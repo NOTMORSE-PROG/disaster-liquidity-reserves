@@ -102,6 +102,16 @@ python worker.py --request request.json --output result.json
 ADB targets are term probabilities and USD over the bond term; World Bank targets are
 annual event rates and USD per year. They are computed and reported separately.
 
+## Environment and hardware
+
+Recorded results come from one CPU workstation: AMD Ryzen 5 9600X (6 cores, 12
+threads), 31 GB RAM, Windows 10 Pro. Tests, validation and the app ran on Windows with
+Python 3.12.10; the organizer's evaluator ran under WSL2 Ubuntu (Linux 6.18, glibc 2.39)
+with Python 3.12.3. Both used numpy 1.26.4 and scipy 1.15.3. No GPU, quantum hardware or
+quantum simulator is used: the tensor-network contraction is the quantum-inspired part
+and runs on the CPU, and the benchmark entry is declared `classical_cpu` with zero shots
+and qubits.
+
 ## Layout
 
 ```
