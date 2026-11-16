@@ -261,9 +261,9 @@ class RegionalPool:
                 if incident[i] > marginal[i] * (1 + _RATE_SLACK) + 1e-300:
                     problems.append(
                         f"At shared earthquake multiplier {point[0]:g} and rain share "
-                        f"{point[1]:.4g}, shared {peril} events next to {country.code} occur "
-                        f"{incident[i]:.6g} times a year, more than its marginal {label} rate "
-                        f"of {marginal[i]:.6g} a year."
+                        f"{100 * point[1]:.4g}%, shared {peril} events next to {country.code} "
+                        f"occur {incident[i]:.6g} times a year, more than its marginal "
+                        f"{label} rate of {marginal[i]:.6g} a year."
                     )
         return problems
 
