@@ -118,11 +118,11 @@ class LatticeRegister:
         message = np.ones((1, 1))
         for i, local in enumerate(tensors):
             width = message.shape[1]
-            # (out state, outcome, register) after summing the incoming bond.
-            moved = np.tensordot(local, message, axes=([0], [0]))
             updated = np.zeros((local.shape[1], width + int(self.max_steps[i])))
+            # One outcome at a time keeps peak memory at a few register-sized
+            # arrays instead of one per outcome.
             for outcome, offset in enumerate(self.pay_steps[i]):
-                updated[:, offset : offset + width] += moved[:, outcome, :]
+                updated[:, offset : offset + width] += local[:, :, outcome].T @ message
             if i < len(weights):
                 updated *= weights[i][:, None]
             message = updated
@@ -153,14 +153,13 @@ class SparseRegister:
     def contract(self, tensors, weights) -> np.ndarray:
         message = np.ones((1, 1))
         for i, local in enumerate(tensors):
-            moved = np.tensordot(local, message, axes=([0], [0]))
             index = self.scatter[i]
             size = int(index.max()) + 1
             updated = np.zeros((local.shape[1], size))
             for outcome in range(OUTCOMES):
                 # Within one outcome the shifted totals are distinct, so plain
                 # fancy-index addition does not drop repeated indices.
-                updated[:, index[outcome]] += moved[:, outcome, :]
+                updated[:, index[outcome]] += local[:, :, outcome].T @ message
             if i < len(weights):
                 updated *= weights[i][:, None]
             message = updated
