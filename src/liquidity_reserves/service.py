@@ -23,7 +23,7 @@ from .bounds import (
     bracket_reserve,
     grid_reserve,
 )
-from .contraction import choose_registers
+from .contraction import choose_registers, distribution
 from .examples import (
     DEFAULT_RANGE,
     DEFAULT_RISK_LIMIT,
@@ -31,11 +31,19 @@ from .examples import (
     public_two_bond,
     synthetic_chain,
 )
+from .insights import (
+    assumption_map,
+    chain_graph,
+    limit_sweep,
+    map_resolution,
+    shortfall_drivers,
+)
 from .money import decimal_string, format_usd, usd_to_units
 from .paths import results_dir
 from .portfolio import Country, InputError, RegionalPool, SharedShockRange
 
 MAX_CHART_POINTS = 800
+DEFAULT_SWEEP_PERCENT = (0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 5.0)
 _CACHE: dict = {}
 _CACHE_SIZE = 8
 STATUS_TEXT = {
@@ -660,12 +668,187 @@ def _compute(payload: dict) -> dict:
             "contraction).",
         },
         "chart": _chart(result),
+        "headline": _headline(result, grid),
+        "insights": _insights(result, registers),
         "assumptions": assumptions(result),
         "checks": _live_checks(result),
         "recorded_validation": recorded_validation(),
     }
     output["exceedance_table"] = _table(result)
     return output
+
+
+def _headline(result: BracketResult, grid: dict | None) -> dict:
+    """Numbers for the verdict card."""
+    corners = len(result.shock_range.corners())
+    grid_evaluations = grid["evaluations"] if grid else 1 + corners + 2 * 16 * 16
+    uplift = result.upper_units - result.base.lower_units
+    base_value = result.base.lower_units / 400
+    return {
+        "reserve": _usd(result.upper_units),
+        "lower": _usd(result.lower_units),
+        "base": _usd(result.base.lower_units),
+        "uplift": _usd(abs(uplift)),
+        "uplift_sign": 1 if uplift > 0 else (-1 if uplift < 0 else 0),
+        "uplift_percent": (uplift / 400) / base_value * 100 if base_value else None,
+        "evaluations": result.total_evaluations,
+        "grid_evaluations": grid_evaluations,
+        "grid_measured": grid is not None,
+        "evaluations_saved_percent": 100 * (1 - result.total_evaluations / grid_evaluations),
+        "term_years": result.pool.term_years,
+        "risk_limit": result.risk_limit,
+    }
+
+
+def _insights(result: BracketResult, registers) -> dict:
+    """Assumption map, shortfall drivers and the regional chain for the dashboard."""
+    pool = result.pool
+    grid = assumption_map(
+        pool,
+        result.shock_range,
+        result.risk_limit,
+        registers.lower,
+        result.upper_units,
+        map_resolution(pool.n),
+    )
+    evidence_amount = result.shortfall_evidence()
+    amount = evidence_amount[0] if evidence_amount else result.upper_units
+    drivers = shortfall_drivers(pool, pool.rates(result.witness.point), registers.lower, amount)
+    return {
+        "map": {
+            **grid,
+            "cells": [
+                {
+                    "earthquake_multiplier": [float(c.low[0]), float(c.high[0])],
+                    "rain_share": [float(c.low[1]), float(c.high[1])],
+                    "upper_usd": c.upper_units / 400,
+                }
+                for c in result.leaves
+            ],
+            "evaluated_points": [list(p) for p in result.tracker.points],
+            "witness": list(result.witness.point),
+            "base": [float(x) for x in pool.base_point],
+            "base_in_range": result.shock_range.contains(pool.base_point),
+            "note": "Point reserve at each assumption on the grid. Map evaluations explain the "
+            "result and are not part of the certified bounds.",
+        },
+        "drivers": {**drivers, "scenario": _point(pool, result.witness.point)["label"]},
+        "chain": chain_graph(pool, result.shock_range, result.witness.point),
+        "evaluations": {"map": grid["evaluations"], "drivers": drivers["evaluations"]},
+    }
+
+
+def _limits(payload: dict) -> list:
+    raw = payload.get("limits_percent") or list(DEFAULT_SWEEP_PERCENT)
+    if not isinstance(raw, list) or not 1 <= len(raw) <= 12:
+        raise InputError("give between 1 and 12 risk limits to compare")
+    limits = []
+    for value in raw:
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise InputError("risk limits must be numbers")
+        if not math.isfinite(value) or not 0 < value < 100:
+            raise InputError("each risk limit must be strictly between 0% and 100%")
+        limits.append(float(value) / 100)
+    return sorted(set(limits))
+
+
+def _remember(key: str, report: dict):
+    _CACHE[key] = report
+    while len(_CACHE) > _CACHE_SIZE:
+        _CACHE.pop(next(iter(_CACHE)))
+
+
+def sweep(payload: dict) -> dict:
+    """Reserve bracket for several risk limits with the same pool and range."""
+    parsed = parse_inputs(payload)
+    limits = _limits(payload)
+    key = json.dumps({"sweep": payload, "limits": limits}, sort_keys=True, default=str)
+    if key not in _CACHE:
+        registers = choose_registers(parsed["pool"])
+        rows = limit_sweep(
+            parsed["pool"],
+            parsed["shock_range"],
+            limits,
+            registers,
+            gap_usd=parsed["gap_usd"],
+            max_evaluations=parsed["max_evaluations"],
+        )
+        _remember(
+            key,
+            {
+                "rows": rows,
+                "current_limit": parsed["risk_limit"],
+                "total_evaluations": sum(r["evaluations"] for r in rows),
+                "pool": parsed["pool"].name,
+                "synthetic": parsed["pool"].synthetic,
+            },
+        )
+    return copy.deepcopy(_CACHE[key])
+
+
+def quantum_check(payload: dict) -> dict:
+    """Amplitude-estimation check of P(L > base reserve) at the current base assumptions."""
+    from .quantum import queries_for_precision, query_study
+
+    parsed = parse_inputs(payload)
+    key = json.dumps({"quantum": payload}, sort_keys=True, default=str)
+    if key in _CACHE:
+        return copy.deepcopy(_CACHE[key])
+    pool = parsed["pool"]
+    registers = choose_registers(pool)
+    curve = distribution(pool, pool.rates(pool.base_point), registers.lower)
+    amount = curve.reserve_units(parsed["risk_limit"])
+    if curve.exceedance(amount) <= 0:
+        raise InputError("the base reserve is never exceeded, so there is nothing to estimate")
+    study = query_study(curve, amount, schedules=8, repeats=60)
+    report = {
+        **study,
+        "pool": pool.name,
+        "synthetic": pool.synthetic,
+        "exact_from_contraction": curve.exceedance(amount),
+        "precision": [queries_for_precision(study["probability"], e) for e in (1e-3, 1e-4)],
+        "rounded_payouts": not registers.exact,
+        "scope": "Ideal noiseless statevector simulation on the CPU. Loading the payout law "
+        "uses the classical contraction, so this checks the estimator and its query scaling; "
+        "it is not a speed-up claim.",
+    }
+    _remember(key, report)
+    return copy.deepcopy(report)
+
+
+@lru_cache(maxsize=1)
+def _complexity() -> tuple:
+    rows = []
+    for n in (2, 5, 10, 20, 50):
+        levels = choose_registers(synthetic_chain(n)).lower.size
+        entries = 2 * 10 * 10 + max(n - 2, 0) * 10 * 10 * 10
+        rows.append(
+            {
+                "countries": n,
+                "joint_country_states": f"10^{n}",
+                "payout_levels": levels,
+                "tensor_entries": entries,
+                "register_operations": entries * levels,
+            }
+        )
+    return tuple(rows)
+
+
+def evidence() -> dict:
+    """Recorded validation, evaluator and quantum results plus contraction scaling."""
+    folder = results_dir()
+
+    def read(name):
+        path = folder / name
+        return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else None
+
+    return {
+        "validation": read("validation.json"),
+        "benchmark": read("benchmark/summary.json"),
+        "quantum": read("quantum.json"),
+        "complexity": list(_complexity()),
+        "applicant": f"{APPLICANT} ({APPLICANT_ROLE})",
+    }
 
 
 # ---------------------------------------------------------------------------

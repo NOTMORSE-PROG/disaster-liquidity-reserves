@@ -21,7 +21,15 @@ from urllib.parse import parse_qs, urlparse
 from .. import APPLICANT, APPLICANT_ROLE, PROJECT_TITLE, __version__
 from ..examples import example_catalogue
 from ..portfolio import InputError
-from ..service import calculate, default_inputs, export, recorded_validation
+from ..service import (
+    calculate,
+    default_inputs,
+    evidence,
+    export,
+    quantum_check,
+    recorded_validation,
+    sweep,
+)
 
 STATIC = Path(__file__).resolve().parent / "static"
 STATIC_TYPES = {
@@ -126,6 +134,7 @@ class Handler(BaseHTTPRequestHandler):
                 ),
             ),
             "/api/validation": lambda: self._json(200, recorded_validation()),
+            "/api/evidence": lambda: self._json(200, evidence()),
         }
         if url.path in routes:
             self._guarded(routes[url.path])
@@ -133,12 +142,17 @@ class Handler(BaseHTTPRequestHandler):
         if url.path == "/favicon.ico":
             self._static("/static/icon.svg")
             return
+        if url.path == "/report":
+            self._static("/static/report.html")
+            return
         self._static(url.path)
 
     def do_POST(self):
         url = urlparse(self.path)
-        if url.path == "/api/calculate":
-            self._guarded(lambda: self._json(200, calculate(self._body())))
+        actions = {"/api/calculate": calculate, "/api/sweep": sweep, "/api/quantum": quantum_check}
+        if url.path in actions:
+            action = actions[url.path]
+            self._guarded(lambda: self._json(200, action(self._body())))
             return
         if url.path == "/api/export":
             fmt = parse_qs(url.query).get("format", ["json"])[0]
