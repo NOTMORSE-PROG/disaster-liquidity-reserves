@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: python -m pip install -r requirements-dev.txt
+      - run: ruff check .
+      - run: ruff format --check .
+
+  test:
+    needs: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.10", "3.12"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m pip install -e .
+      - run: python -m pytest -q
+
+  benchmark:
+    # The organizer's evaluator is POSIX-only. Two repeats keep CI short, so this
+    # run checks the evaluation-v1 contract and accuracy but is practice only;
+    # the recorded 10-repeat results live in results/benchmark.
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install pinned dependencies and the vendored benchmark
+        run: python -m pip install -r requirements.txt ./benchmark
+      - name: Run the official evaluator on public and practice suites
+        env:
+          PYTHON: python
+          REPEATS: "2"
+        run: scripts/run_benchmark.sh runs/ci
+      - name: Recompute proposal figures
+        run: |
+          python -m pip install -e .
+          python -m liquidity_reserves.validation --quick --output runs/ci/validation.json --benchmark-summary runs/ci/summary.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: benchmark-and-validation
+          path: |
+            runs/ci/summary.json
+            runs/ci/*-report/
+            runs/ci/validation.*
