@@ -1,0 +1,273 @@
+{
+  "schema": "dlr-noise-v1",
+  "noise_model": {
+    "cz_error": 0.0032,
+    "sx_error": 0.00023,
+    "readout_error": 0.01,
+    "t1_us": 197.0,
+    "t2_us": 118.0,
+    "cz_ns": 68.0,
+    "sx_ns": 32.0,
+    "source": "median of IBM Marrakesh (Heron r2) calibration snapshot, qiskit-ibm-runtime fake_provider, February 2025"
+  },
+  "simulator": "Qiskit Aer density-matrix method; circuits compiled to cz/rz/sx/x, optimization level 1",
+  "study": {
+    "truth": 0.012046720907534038,
+    "powers": [
+      0,
+      1,
+      2,
+      4,
+      8
+    ],
+    "shots_per_power": 1000,
+    "repeats": 100,
+    "rows": [
+      {
+        "error_scale": 0.0,
+        "cz_error": 0.0,
+        "cz_gates": {
+          "0": 57,
+          "1": 225,
+          "2": 393,
+          "4": 729,
+          "8": 1401
+        },
+        "flag_probability": {
+          "0": 0.011865,
+          "1": 0.104425,
+          "2": 0.273585,
+          "4": 0.69729,
+          "8": 0.91462
+        },
+        "ideal_flag_probability": {
+          "0": 0.012046720907534038,
+          "1": 0.10496549673069223,
+          "2": 0.2731089385709789,
+          "4": 0.6987670853513491,
+          "8": 0.9133167002257655
+        },
+        "mlae_rmse": 0.0001750707490280832,
+        "noise_aware_mlae_rmse": 0.000289147228471597,
+        "mlae_median": 0.012015245179414508,
+        "noise_aware_median": 0.011871078296270762
+      },
+      {
+        "error_scale": 0.01,
+        "cz_error": 3.2000000000000005e-05,
+        "cz_gates": {
+          "0": 57,
+          "1": 225,
+          "2": 393,
+          "4": 729,
+          "8": 1401
+        },
+        "flag_probability": {
+          "0": 0.01203,
+          "1": 0.10511,
+          "2": 0.27314,
+          "4": 0.688405,
+          "8": 0.898075
+        },
+        "ideal_flag_probability": {
+          "0": 0.012046720907534038,
+          "1": 0.10496549673069223,
+          "2": 0.2731089385709789,
+          "4": 0.6987670853513491,
+          "8": 0.9133167002257655
+        },
+        "mlae_rmse": 0.0002483815767215573,
+        "noise_aware_mlae_rmse": 0.00030681283282718504,
+        "mlae_median": 0.012217405067573397,
+        "noise_aware_median": 0.011871078296270762
+      },
+      {
+        "error_scale": 0.1,
+        "cz_error": 0.00032,
+        "cz_gates": {
+          "0": 57,
+          "1": 225,
+          "2": 393,
+          "4": 729,
+          "8": 1401
+        },
+        "flag_probability": {
+          "0": 0.01367,
+          "1": 0.11162,
+          "2": 0.27038,
+          "4": 0.619965,
+          "8": 0.773455
+        },
+        "ideal_flag_probability": {
+          "0": 0.012046720907534038,
+          "1": 0.10496549673069223,
+          "2": 0.2731089385709789,
+          "4": 0.6987670853513491,
+          "8": 0.9133167002257655
+        },
+        "mlae_rmse": 0.0014570365677711841,
+        "noise_aware_mlae_rmse": 0.0007005840882465344,
+        "mlae_median": 0.013493970484538487,
+        "noise_aware_median": 0.01161739481106224
+      },
+      {
+        "error_scale": 1.0,
+        "cz_error": 0.0032,
+        "cz_gates": {
+          "0": 57,
+          "1": 225,
+          "2": 393,
+          "4": 729,
+          "8": 1401
+        },
+        "flag_probability": {
+          "0": 0.02939,
+          "1": 0.169275,
+          "2": 0.280305,
+          "4": 0.399205,
+          "8": 0.464135
+        },
+        "ideal_flag_probability": {
+          "0": 0.012046720907534038,
+          "1": 0.10496549673069223,
+          "2": 0.2731089385709789,
+          "4": 0.6987670853513491,
+          "8": 0.9133167002257655
+        },
+        "mlae_rmse": 0.007413195742232365,
+        "noise_aware_mlae_rmse": 0.004509572277023376,
+        "mlae_median": 0.003508987073343059,
+        "noise_aware_median": 0.007856059414420611
+      }
+    ]
+  },
+  "error_budget": [
+    {
+      "case": "Public two-bond",
+      "qubits": 21,
+      "grover_depth": 16,
+      "two_qubit_gates": 61344,
+      "error_needed_for_half_fidelity": 1.129928378518219e-05,
+      "fidelity_at_heron_r2": 4.082726663992503e-86,
+      "improvement_needed": 283.20379068596014
+    },
+    {
+      "case": "Public two-bond",
+      "qubits": 21,
+      "grover_depth": 1024,
+      "two_qubit_gates": 3879648,
+      "error_needed_for_half_fidelity": 1.786623731181436e-07,
+      "fidelity_at_heron_r2": 0.0,
+      "improvement_needed": 17910.87817849562
+    },
+    {
+      "case": "Synthetic 2 countries",
+      "qubits": 24,
+      "grover_depth": 16,
+      "two_qubit_gates": 73562,
+      "error_needed_for_half_fidelity": 9.422581155216214e-06,
+      "fidelity_at_heron_r2": 4.016543519886923e-103,
+      "improvement_needed": 339.6097043142497
+    },
+    {
+      "case": "Synthetic 2 countries",
+      "qubits": 24,
+      "grover_depth": 1024,
+      "two_qubit_gates": 4651898,
+      "error_needed_for_half_fidelity": 1.4900307976351002e-07,
+      "fidelity_at_heron_r2": 0.0,
+      "improvement_needed": 21476.066166409946
+    },
+    {
+      "case": "Synthetic 3 countries",
+      "qubits": 33,
+      "grover_depth": 16,
+      "two_qubit_gates": 225107,
+      "error_needed_for_half_fidelity": 3.079185069254642e-06,
+      "fidelity_at_heron_r2": 4.5462679934e-314,
+      "improvement_needed": 1039.2360082385705
+    },
+    {
+      "case": "Synthetic 3 countries",
+      "qubits": 33,
+      "grover_depth": 1024,
+      "two_qubit_gates": 14099219,
+      "error_needed_for_half_fidelity": 4.916209639382885e-08,
+      "fidelity_at_heron_r2": 0.0,
+      "improvement_needed": 65090.79625826708
+    },
+    {
+      "case": "Synthetic 5 countries",
+      "qubits": 50,
+      "grover_depth": 16,
+      "two_qubit_gates": 519051,
+      "error_needed_for_half_fidelity": 1.3354115833141833e-06,
+      "fidelity_at_heron_r2": 0.0,
+      "improvement_needed": 2396.264971776221
+    },
+    {
+      "case": "Synthetic 5 countries",
+      "qubits": 50,
+      "grover_depth": 1024,
+      "two_qubit_gates": 32410155,
+      "error_needed_for_half_fidelity": 2.1386728166206126e-08,
+      "fidelity_at_heron_r2": 0.0,
+      "improvement_needed": 149625.5048987075
+    },
+    {
+      "case": "Synthetic 10 countries",
+      "qubits": 91,
+      "grover_depth": 16,
+      "two_qubit_gates": 1261538,
+      "error_needed_for_half_fidelity": 5.494459859312073e-07,
+      "fidelity_at_heron_r2": 0.0,
+      "improvement_needed": 5824.048372246461
+    },
+    {
+      "case": "Synthetic 10 countries",
+      "qubits": 91,
+      "grover_depth": 1024,
+      "two_qubit_gates": 78679970,
+      "error_needed_for_half_fidelity": 8.809703078149766e-09,
+      "fidelity_at_heron_r2": 0.0,
+      "improvement_needed": 363235.8516073928
+    },
+    {
+      "case": "Synthetic 20 countries",
+      "qubits": 172,
+      "grover_depth": 16,
+      "two_qubit_gates": 2718012,
+      "error_needed_for_half_fidelity": 2.5501987932496917e-07,
+      "fidelity_at_heron_r2": 0.0,
+      "improvement_needed": 12548.041385912013
+    },
+    {
+      "case": "Synthetic 20 countries",
+      "qubits": 172,
+      "grover_depth": 1024,
+      "two_qubit_gates": 169392828,
+      "error_needed_for_half_fidelity": 4.091951111284686e-09,
+      "fidelity_at_heron_r2": 0.0,
+      "improvement_needed": 782023.028372728
+    },
+    {
+      "case": "Synthetic 50 countries",
+      "qubits": 413,
+      "grover_depth": 16,
+      "two_qubit_gates": 7162516,
+      "error_needed_for_half_fidelity": 9.677425460985489e-08,
+      "fidelity_at_heron_r2": 0.0,
+      "improvement_needed": 33066.64580265475
+    },
+    {
+      "case": "Synthetic 50 countries",
+      "qubits": 413,
+      "grover_depth": 1024,
+      "two_qubit_gates": 446336020,
+      "error_needed_for_half_fidelity": 1.5529716401729843e-09,
+      "fidelity_at_heron_r2": 0.0,
+      "improvement_needed": 2060565.6389472475
+    }
+  ],
+  "reading": "Noise pulls the flag probability towards one half as Grover depth grows. The noise-aware estimator recovers much of the loss on the small circuit; the full tensor-chain circuits need error rates that only fault-tolerant devices offer."
+}
