@@ -1,8 +1,7 @@
 # Disaster liquidity reserves
 
 Prototype for **Sizing Disaster Liquidity Reserves under Overlapping Regional Shocks**
-(ADB Quantum Innovation Challenge). Mark Andrei Condino is the sole applicant and is
-responsible for the entire project.
+(ADB Quantum Innovation Challenge).
 
 A regional disaster pool must decide how much cash to hold when several countries may
 claim at once. Given country loss rates, payout caps, a range of shared earthquake and
