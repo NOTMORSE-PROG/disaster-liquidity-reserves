@@ -1,0 +1,293 @@
+{
+  "schema": "dlr-evidence-v1",
+  "source": "World Bank SFRARR Central Asia seismic and flood event loss tables (CC BY 4.0), as shipped in the organizer's benchmark data folder",
+  "pool": "Public two-bond example (ADB 2026 KGZ and TJK bonds)",
+  "earthquake": {
+    "peril": "earthquake",
+    "pair": "KGZ-TJK",
+    "events_in_catalogue": 419968,
+    "event_rate_per_year": 0.000100005,
+    "target_trigger_rate_per_year": {
+      "KGZ": 0.039603986593163366,
+      "TJK": 0.040041049537183744
+    },
+    "attained_trigger_rate_per_year": {
+      "KGZ": 0.039701984999999995,
+      "TJK": 0.040202009999999996
+    },
+    "trigger_loss_usd": {
+      "KGZ": 567869000.0,
+      "TJK": 605112000.0
+    },
+    "trigger_events": {
+      "KGZ": 397,
+      "TJK": 402
+    },
+    "joint_trigger_events": 0,
+    "shared_rate_per_year": 0.0,
+    "conditional_trigger": {
+      "TJK_given_KGZ": 0.0,
+      "KGZ_given_TJK": 0.0
+    },
+    "shared_rate_interval_per_year": [
+      0.0,
+      0.0003689063898086641
+    ],
+    "interval": "exact Poisson 95% interval on the joint event count",
+    "secondary_uncertainty": {
+      "independent_given_event_per_year": 4.418775012937919e-05,
+      "comonotone_given_event_per_year": 0.0001006322519960071,
+      "model": "gamma loss per event with the catalogue mean and standard deviation"
+    }
+  },
+  "rain": {
+    "peril": "rain",
+    "pair": "KGZ-TJK",
+    "events_in_catalogue": 2000,
+    "event_rate_per_year": 0.0005,
+    "target_trigger_rate_per_year": {
+      "KGZ": 0.02020270731751945,
+      "TJK": 0.02020270731751945
+    },
+    "attained_trigger_rate_per_year": {
+      "KGZ": 0.0205,
+      "TJK": 0.0205
+    },
+    "trigger_loss_usd": {
+      "KGZ": 205595000.0,
+      "TJK": 379391000.0
+    },
+    "trigger_events": {
+      "KGZ": 41,
+      "TJK": 41
+    },
+    "joint_trigger_events": 1,
+    "shared_rate_per_year": 0.0005,
+    "conditional_trigger": {
+      "TJK_given_KGZ": 0.024390243902439025,
+      "KGZ_given_TJK": 0.024390243902439025
+    },
+    "shared_rate_interval_per_year": [
+      1.265890399214495e-05,
+      0.002785821695469449
+    ],
+    "interval": "exact Poisson 95% interval on the joint event count",
+    "secondary_uncertainty": {
+      "independent_given_event_per_year": 0.0003843941651124917,
+      "comonotone_given_event_per_year": 0.0004846158870553922,
+      "model": "gamma loss per event with the catalogue mean and standard deviation"
+    }
+  },
+  "earthquake_tail_dependence": [
+    {
+      "return_period_years": 2,
+      "trigger_loss_usd": {
+        "KGZ": 76163300.0,
+        "TJK": 110740000.0
+      },
+      "joint_trigger_events": 94,
+      "conditional_trigger": 0.018800000000000004
+    },
+    {
+      "return_period_years": 5,
+      "trigger_loss_usd": {
+        "KGZ": 184324000.0,
+        "TJK": 239382000.0
+      },
+      "joint_trigger_events": 12,
+      "conditional_trigger": 0.005999999999999999
+    },
+    {
+      "return_period_years": 10,
+      "trigger_loss_usd": {
+        "KGZ": 318284000.0,
+        "TJK": 375833000.0
+      },
+      "joint_trigger_events": 7,
+      "conditional_trigger": 0.006999999999999999
+    },
+    {
+      "return_period_years": 25,
+      "trigger_loss_usd": {
+        "KGZ": 566232000.0,
+        "TJK": 605629000.0
+      },
+      "joint_trigger_events": 0,
+      "conditional_trigger": 0.0
+    },
+    {
+      "return_period_years": 50,
+      "trigger_loss_usd": {
+        "KGZ": 799104000.0,
+        "TJK": 869285000.0
+      },
+      "joint_trigger_events": 0,
+      "conditional_trigger": 0.0
+    },
+    {
+      "return_period_years": 100,
+      "trigger_loss_usd": {
+        "KGZ": 1145290000.0,
+        "TJK": 1233690000.0
+      },
+      "joint_trigger_events": 0,
+      "conditional_trigger": 0.0
+    }
+  ],
+  "rain_tail_dependence": [
+    {
+      "return_period_years": 2,
+      "trigger_loss_usd": {
+        "KGZ": 88734700.0,
+        "TJK": 168967000.0
+      },
+      "joint_trigger_events": 496,
+      "conditional_trigger": 0.496
+    },
+    {
+      "return_period_years": 5,
+      "trigger_loss_usd": {
+        "KGZ": 130641000.0,
+        "TJK": 242535000.0
+      },
+      "joint_trigger_events": 81,
+      "conditional_trigger": 0.20249999999999999
+    },
+    {
+      "return_period_years": 10,
+      "trigger_loss_usd": {
+        "KGZ": 155875000.0,
+        "TJK": 293802000.0
+      },
+      "joint_trigger_events": 27,
+      "conditional_trigger": 0.13499999999999998
+    },
+    {
+      "return_period_years": 25,
+      "trigger_loss_usd": {
+        "KGZ": 186022000.0,
+        "TJK": 352086000.0
+      },
+      "joint_trigger_events": 3,
+      "conditional_trigger": 0.03749999999999999
+    },
+    {
+      "return_period_years": 50,
+      "trigger_loss_usd": {
+        "KGZ": 205883000.0,
+        "TJK": 380587000.0
+      },
+      "joint_trigger_events": 1,
+      "conditional_trigger": 0.025
+    },
+    {
+      "return_period_years": 100,
+      "trigger_loss_usd": {
+        "KGZ": 223501000.0,
+        "TJK": 408981000.0
+      },
+      "joint_trigger_events": 0,
+      "conditional_trigger": 0.0
+    }
+  ],
+  "bond_conditional_trigger": 0.0745,
+  "earthquake_multiplier_sources": [
+    {
+      "source": "World Bank catalogue, central estimate",
+      "value": 0.0
+    },
+    {
+      "source": "World Bank catalogue, 95% upper",
+      "value": 0.12435039874976979
+    },
+    {
+      "source": "World Bank catalogue, secondary uncertainty (comonotone)",
+      "value": 0.03392096479890494
+    },
+    {
+      "source": "Bond documents, same-event conditionals (base)",
+      "value": 1.0
+    },
+    {
+      "source": "Organizer common-shock stress scenario",
+      "value": 2.0
+    }
+  ],
+  "rain_share_sources": [
+    {
+      "source": "World Bank catalogue, central estimate",
+      "value": 0.024749158226254578
+    },
+    {
+      "source": "World Bank catalogue, 95% upper",
+      "value": 0.13789348386261238
+    },
+    {
+      "source": "World Bank catalogue, secondary uncertainty (comonotone)",
+      "value": 0.023987670535381235
+    },
+    {
+      "source": "Organizer illustrative common share (base)",
+      "value": 0.25
+    }
+  ],
+  "evidence_range": {
+    "earthquake_multiplier": [
+      0.0,
+      1.0
+    ],
+    "rain_share": [
+      0.0,
+      0.25
+    ]
+  },
+  "stress_range": {
+    "earthquake_multiplier": [
+      0.0,
+      2.0
+    ],
+    "rain_share": [
+      0.0,
+      0.25
+    ]
+  },
+  "reading": "Calibrated to the bond's trigger rates, the World Bank catalogue shows much weaker same-event triggering than the bond documents. The evidence range spans both sources; the stress range adds the organizer's doubled common-shock scenario.",
+  "reserves": [
+    {
+      "range": "evidence_range",
+      "risk_limit": 0.015,
+      "lower_usd": 80000000.0,
+      "upper_usd": 80000000.0,
+      "base_usd": 80000000.0,
+      "evaluations": 7,
+      "status": "resolved"
+    },
+    {
+      "range": "evidence_range",
+      "risk_limit": 0.005,
+      "lower_usd": 105000000.0,
+      "upper_usd": 105000000.0,
+      "base_usd": 105000000.0,
+      "evaluations": 7,
+      "status": "resolved"
+    },
+    {
+      "range": "stress_range",
+      "risk_limit": 0.015,
+      "lower_usd": 87500000.0,
+      "upper_usd": 87500000.0,
+      "base_usd": 80000000.0,
+      "evaluations": 7,
+      "status": "resolved"
+    },
+    {
+      "range": "stress_range",
+      "risk_limit": 0.005,
+      "lower_usd": 105000000.0,
+      "upper_usd": 105000000.0,
+      "base_usd": 105000000.0,
+      "evaluations": 39,
+      "status": "resolved"
+    }
+  ]
+}
