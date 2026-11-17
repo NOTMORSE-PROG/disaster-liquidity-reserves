@@ -59,7 +59,7 @@ jobs:
           cache-dependency-path: requirements-quantum.txt
       - run: python -m pip install -r requirements-dev.txt -r requirements-quantum.txt
       - run: python -m pip install -e .
-      - run: python -m pytest -q tests/test_quantum.py tests/test_quantum_chain.py
+      - run: python -m pytest -q tests/test_quantum.py tests/test_quantum_chain.py tests/test_quantum_extensions.py
 
   benchmark:
     # The organizer's evaluator is POSIX-only. Two repeats keep CI short, so this
@@ -93,3 +93,20 @@ jobs:
             runs/ci/summary.json
             runs/ci/*-report/
             runs/ci/validation.*
+
+  docker:
+    # Builds the image without the quantum extras and checks the app answers.
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build --build-arg WITH_QUANTUM=0 -t reservebound .
+      - name: Start the app and query it
+        run: |
+          docker run -d --name app -p 8765:8765 reservebound
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8765/api/health && break; sleep 1; done
+          curl -fsS "http://127.0.0.1:8765/api/defaults?example=public-two-bond" \
+            | curl -fsS -X POST http://127.0.0.1:8765/api/calculate -H "Content-Type: application/json" -d @- \
+            | python3 -c "import json, sys; r = json.load(sys.stdin); assert r['range_result']['upper']['usd'] == '87500000', r; print('reserve', r['range_result']['upper']['text'])"
+      - if: always()
+        run: docker logs app || true
