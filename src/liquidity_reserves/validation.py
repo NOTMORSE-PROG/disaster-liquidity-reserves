@@ -548,6 +548,129 @@ def quantum_checks(checks: Checks, path: Path):
     return study
 
 
+def extension_checks(checks: Checks, folder: Path):
+    """Range evidence, financing, pooling and the map surrogate, recomputed here.
+
+    QAOA and the noise study need the quantum extras and take minutes, so their
+    recorded results are checked against the figures quoted in the documents.
+    """
+    from .contraction import choose_registers
+    from .evidence import evidence_reserves, public_evidence
+    from .examples import DEFAULT_RANGE
+    from .insights import assumption_map
+    from .layering import risk_layering
+    from .pooling import pooling_benefit
+    from .surrogate import surrogate_map
+
+    pool = public_two_bond()
+    group = "Range evidence (World Bank catalogue)"
+    evidence = public_evidence(pool)
+    checks.count(
+        group,
+        "Earthquake events triggering both countries",
+        0,
+        evidence["earthquake"]["joint_trigger_events"],
+    )
+    checks.count(
+        group, "Rain events triggering both countries", 1, evidence["rain"]["joint_trigger_events"]
+    )
+    reserves = {(r["range"], r["risk_limit"]): r for r in evidence_reserves(evidence, (0.015,))}
+    evidence_row = reserves[("evidence_range", 0.015)]
+    checks.money(
+        group,
+        "Certified reserve across the evidence range at 1.5%",
+        80_000_000,
+        int(round(evidence_row["upper_usd"] * 400)),
+        "range 0-1x earthquake, 0-25% rain",
+    )
+
+    group = "Financing and pooling"
+    registers = choose_registers(pool)
+    result = bracket_reserve(pool, DEFAULT_RANGE, 0.015, registers=registers)
+    plan = risk_layering(pool, DEFAULT_RANGE, 0.015, result=result)
+    layers = plan["optimal"]["layers_usd"]
+    checks.add(
+        group,
+        "Optimal stack at 1.5%",
+        "credit to $70m, insurance $70m-$87.5m",
+        layers,
+        layers["reserve"] == [0.0, 0.0]
+        and layers["credit"] == [0.0, 70e6]
+        and layers["insurance"] == [70e6, 87.5e6],
+        display=f"credit to ${layers['credit'][1] / 1e6:g}m, insurance "
+        f"${layers['insurance'][0] / 1e6:g}m-${layers['insurance'][1] / 1e6:g}m",
+    )
+    saving = plan["saving_vs_all_reserve_percent"]
+    checks.add(
+        group,
+        "Expected funding cost below an all-cash reserve",
+        "16.1%",
+        saving,
+        f"{saving:.1f}%" == "16.1%",
+        display=f"{saving:.1f}%",
+    )
+    pooled = pooling_benefit(pool, DEFAULT_RANGE, 0.015, result=result)
+    checks.add(
+        group,
+        "Pooling saving at 1.5% ($140m standalone vs $87.5m pooled)",
+        "37.5%",
+        pooled["saving_percent"],
+        f"{pooled['saving_percent']:.1f}%" == "37.5%",
+        display=f"{pooled['saving_percent']:.1f}%",
+    )
+
+    group = "Map surrogate (Gaussian process)"
+    for limit in (0.015, 0.005):
+        bracket = (
+            result
+            if limit == 0.015
+            else bracket_reserve(pool, DEFAULT_RANGE, limit, registers=registers)
+        )
+        exact = assumption_map(pool, DEFAULT_RANGE, limit, registers.lower, bracket.upper_units, 21)
+        fast = surrogate_map(pool, DEFAULT_RANGE, limit, registers.lower, bracket.upper_units, 21)
+        same = exact["reserve_usd"] == fast["reserve_usd"]
+        checks.add(
+            group,
+            f"Surrogate map equals the exact 21x21 map at {limit:.1%}",
+            "all 441 cells, at most 30 contractions",
+            fast["evaluations"],
+            same and fast["evaluations"] <= 30,
+            display=f"{'all' if same else 'not all'} cells, {fast['evaluations']} contractions",
+        )
+
+    layering = folder / "layering.json"
+    if layering.is_file():
+        record = json.loads(layering.read_text(encoding="utf-8"))
+        runs = {r["mixer"]: r for r in record.get("qaoa") or []}
+        xy = runs.get("XY ring (one-hot preserving)")
+        if xy:
+            checks.add(
+                "Quantum optimization (recorded)",
+                "XY-mixer QAOA samples the optimal stack",
+                "most frequent valid plan is optimal, P > 20%",
+                xy["probability_optimal_sampled"],
+                xy["qaoa_finds_optimum"] and xy["probability_optimal_sampled"] > 0.2,
+                f"{xy['qubits']} qubits, {xy['compiled_cx']} CX",
+                f"{100 * xy['probability_optimal_sampled']:.1f}%",
+            )
+    noise = folder / "noise.json"
+    if noise.is_file():
+        record = json.loads(noise.read_text(encoding="utf-8"))
+        budget = next(
+            r
+            for r in record["error_budget"]
+            if r["case"] == "Public two-bond" and r["grover_depth"] == 16
+        )
+        checks.add(
+            "Noise study (recorded)",
+            "Two-qubit error needed, two-bond circuit, depth 16",
+            "about 1e-5",
+            budget["error_needed_for_half_fidelity"],
+            5e-6 < budget["error_needed_for_half_fidelity"] < 2e-5,
+            display=f"{budget['error_needed_for_half_fidelity']:.1e}",
+        )
+
+
 def run(quick: bool = False, benchmark_summary: Path | None = None) -> dict:
     checks = Checks()
     two_bond = two_bond_checks(checks)
@@ -575,6 +698,7 @@ def run(quick: bool = False, benchmark_summary: Path | None = None) -> dict:
         checks, benchmark_summary or results_dir() / "benchmark" / "summary.json"
     )
     quantum_checks(checks, results_dir() / "quantum.json")
+    extension_checks(checks, results_dir())
     loose, strict = two_bond["loose"], two_bond["strict"]
     return {
         "schema": "dlr-validation-v1",

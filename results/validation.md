@@ -1,8 +1,8 @@
 # Validation report
 
-Generated 2026-11-16T15:15:26+00:00 by engine 0.1.0 (full run). Mark Andrei Condino (sole applicant).
+Generated 2026-11-17T09:10:37+00:00 by engine 0.1.0 (full run). Mark Andrei Condino (sole applicant).
 
-55 of 55 checks agree with their targets.
+65 of 65 checks agree with their targets.
 
 | Group | Check | Proposal / target | Computed | Status | Note |
 |---|---|---|---|---|---|
@@ -61,6 +61,16 @@ Generated 2026-11-16T15:15:26+00:00 by engine 0.1.0 (full run). Mark Andrei Cond
 | Quantum circuit | Interval coverage, Grover powers up to 32, 1000 repeats | at least 95% | 97.0% | pass |  |
 | Quantum circuit | Both $87,500,000 bounds at 1.5% confirmed by quantum estimates | confirmed | True | pass | smaller reserve exceeds; dominating cells meets |
 | Quantum circuit | Qubits added per country (synthetic chains, 2 to 50 countries) | about 8 | 8.10 | pass |  |
+| Range evidence (World Bank catalogue) | Earthquake events triggering both countries | 0 | 0 | pass |  |
+| Range evidence (World Bank catalogue) | Rain events triggering both countries | 1 | 1 | pass |  |
+| Range evidence (World Bank catalogue) | Certified reserve across the evidence range at 1.5% | $80,000,000 | $80,000,000 | pass | range 0-1x earthquake, 0-25% rain |
+| Financing and pooling | Optimal stack at 1.5% | credit to $70m, insurance $70m-$87.5m | credit to $70m, insurance $70m-$87.5m | pass |  |
+| Financing and pooling | Expected funding cost below an all-cash reserve | 16.1% | 16.1% | pass |  |
+| Financing and pooling | Pooling saving at 1.5% ($140m standalone vs $87.5m pooled) | 37.5% | 37.5% | pass |  |
+| Map surrogate (Gaussian process) | Surrogate map equals the exact 21x21 map at 1.5% | all 441 cells, at most 30 contractions | all cells, 13 contractions | pass |  |
+| Map surrogate (Gaussian process) | Surrogate map equals the exact 21x21 map at 0.5% | all 441 cells, at most 30 contractions | all cells, 13 contractions | pass |  |
+| Quantum optimization (recorded) | XY-mixer QAOA samples the optimal stack | most frequent valid plan is optimal, P > 20% | 24.9% | pass | 12 qubits, 528 CX |
+| Noise study (recorded) | Two-qubit error needed, two-bond circuit, depth 16 | about 1e-5 | 1.1e-05 | pass |  |
 
 ## Reserve brackets and evaluation counts
 

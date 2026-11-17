@@ -1,6 +1,6 @@
 {
   "schema": "dlr-validation-v1",
-  "generated_utc": "2026-11-16T15:15:26+00:00",
+  "generated_utc": "2026-11-17T09:10:37+00:00",
   "applicant": "Mark Andrei Condino (sole applicant)",
   "engine_version": "0.1.0",
   "quick": false,
@@ -12,8 +12,8 @@
   },
   "counting_rule": "One distribution evaluation is one aggregate payout distribution. Adaptive refinement counts the base point, each distinct range corner, and a centre scenario plus a dominating model for every cell created. The k-by-k grid counts the base point, four corners and 2k^2 cell evaluations (517 for k = 16).",
   "summary": {
-    "checks": 55,
-    "passed": 55,
+    "checks": 65,
+    "passed": 65,
     "discrepancies": []
   },
   "checks": [
@@ -536,6 +536,109 @@
       "proposal_target": "about 8",
       "computed": 8.104166666666666,
       "computed_display": "8.10",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Range evidence (World Bank catalogue)",
+      "check": "Earthquake events triggering both countries",
+      "proposal_target": 0,
+      "computed": 0,
+      "computed_display": 0,
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Range evidence (World Bank catalogue)",
+      "check": "Rain events triggering both countries",
+      "proposal_target": 1,
+      "computed": 1,
+      "computed_display": 1,
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Range evidence (World Bank catalogue)",
+      "check": "Certified reserve across the evidence range at 1.5%",
+      "proposal_target": "$80,000,000",
+      "computed": 80000000.0,
+      "computed_display": "$80,000,000",
+      "status": "pass",
+      "note": "range 0-1x earthquake, 0-25% rain"
+    },
+    {
+      "group": "Financing and pooling",
+      "check": "Optimal stack at 1.5%",
+      "proposal_target": "credit to $70m, insurance $70m-$87.5m",
+      "computed": {
+        "reserve": [
+          0.0,
+          0.0
+        ],
+        "credit": [
+          0.0,
+          70000000.0
+        ],
+        "insurance": [
+          70000000.0,
+          87500000.0
+        ]
+      },
+      "computed_display": "credit to $70m, insurance $70m-$87.5m",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Financing and pooling",
+      "check": "Expected funding cost below an all-cash reserve",
+      "proposal_target": "16.1%",
+      "computed": 16.106363591327767,
+      "computed_display": "16.1%",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Financing and pooling",
+      "check": "Pooling saving at 1.5% ($140m standalone vs $87.5m pooled)",
+      "proposal_target": "37.5%",
+      "computed": 37.5,
+      "computed_display": "37.5%",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Map surrogate (Gaussian process)",
+      "check": "Surrogate map equals the exact 21x21 map at 1.5%",
+      "proposal_target": "all 441 cells, at most 30 contractions",
+      "computed": 13,
+      "computed_display": "all cells, 13 contractions",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Map surrogate (Gaussian process)",
+      "check": "Surrogate map equals the exact 21x21 map at 0.5%",
+      "proposal_target": "all 441 cells, at most 30 contractions",
+      "computed": 13,
+      "computed_display": "all cells, 13 contractions",
+      "status": "pass",
+      "note": ""
+    },
+    {
+      "group": "Quantum optimization (recorded)",
+      "check": "XY-mixer QAOA samples the optimal stack",
+      "proposal_target": "most frequent valid plan is optimal, P > 20%",
+      "computed": 0.249,
+      "computed_display": "24.9%",
+      "status": "pass",
+      "note": "12 qubits, 528 CX"
+    },
+    {
+      "group": "Noise study (recorded)",
+      "check": "Two-qubit error needed, two-bond circuit, depth 16",
+      "proposal_target": "about 1e-5",
+      "computed": 1.129928378518219e-05,
+      "computed_display": "1.1e-05",
       "status": "pass",
       "note": ""
     }
