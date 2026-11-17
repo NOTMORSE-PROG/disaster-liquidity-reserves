@@ -528,3 +528,87 @@ export function tensorDiagram(host) {
   root.append(svg("text", { class: "td-register-label", x: m.left + w / 2, y: y + 92, "text-anchor": "middle", text: "Payout register: each country adds its payout as the sweep moves left to right" }));
   root.append(svg("text", { class: "td-register-label", x: m.left + w / 2, y: y + 112, "text-anchor": "middle", text: "Shared states are summed out once both neighbours are processed" }));
 }
+
+// --- financing ------------------------------------------------------------------------------
+
+const LAYERS = [
+  ["reserve", "Cash reserve", "layer-reserve"],
+  ["credit", "Contingent credit", "layer-credit"],
+  ["insurance", "Parametric insurance", "layer-insurance"],
+];
+
+export function stackChart(host, plan, options = {}) {
+  // One horizontal bar from $0 to the certified capacity, split into the three layers.
+  const f = frame(host, options.height || 132, { top: 26, right: 24, bottom: 34, left: 24 });
+  const { root, w, m } = f;
+  const capacity = plan.capacity_usd || 1;
+  const sx = (v) => m.left + (v / capacity) * w;
+  const barY = m.top;
+  const barH = 40;
+  const tip = tooltip();
+  const ticks = new Set([0, capacity]);
+  for (const [key, label, cls] of LAYERS) {
+    const [a, b] = plan.optimal.layers_usd[key];
+    if (b - a <= 0) continue;
+    ticks.add(a);
+    ticks.add(b);
+    const rect = svg("rect", { class: cls, x: sx(a), y: barY, width: Math.max(sx(b) - sx(a) - 2, 1), height: barH, rx: 4 });
+    rect.addEventListener("pointermove", (event) =>
+      tip.show(event, [
+        el("div", { class: "t-title", text: `${label}: ${fmt.usdM(a)} to ${fmt.usdM(b)}` }),
+        tipRow("Expected payout from this layer", fmt.usd(plan.optimal.expected_payout_usd[key])),
+        tipRow("Expected cost over the term", fmt.usd(plan.optimal.cost_usd[key])),
+      ]),
+    );
+    rect.addEventListener("pointerleave", () => tip.hide());
+    root.append(rect);
+    if (sx(b) - sx(a) > 110) {
+      root.append(svg("text", { class: "stack-label", x: (sx(a) + sx(b)) / 2, y: barY - 8, "text-anchor": "middle", text: label }));
+    }
+  }
+  for (const t of [...ticks].sort((a, b) => a - b)) {
+    root.append(svg("line", { class: "axis-line", x1: sx(t), x2: sx(t), y1: barY + barH, y2: barY + barH + 6, stroke: "currentColor" }));
+    root.append(svg("text", { class: "stack-tick", x: sx(t), y: barY + barH + 20, "text-anchor": "middle", text: fmt.usdM(t, 2) }));
+  }
+}
+
+export function frontierChart(host, rows, options = {}) {
+  const f = frame(host, options.height || 300, { top: 16, right: 20, bottom: 44, left: 70 });
+  const { root, w, h, m, height } = f;
+  const xs = rows.map((r) => r.risk_limit);
+  const lx0 = Math.log10(Math.min(...xs));
+  const lx1 = Math.log10(Math.max(...xs));
+  const ys = rows.flatMap((r) => [r.optimal_cost_usd, r.all_reserve_cost_usd]);
+  const yMax = Math.max(...ys) * 1.1;
+  const sx = (x) => m.left + (lx1 > lx0 ? ((Math.log10(x) - lx0) / (lx1 - lx0)) * w : w / 2);
+  const sy = (y) => m.top + h - (y / yMax) * h;
+  const grid = svg("g", { class: "grid" });
+  const axis = svg("g", { class: "axis" });
+  const step = niceStep(yMax / 1e6, 5) * 1e6;
+  for (let y = 0; y <= yMax; y += step) {
+    grid.append(svg("line", { x1: m.left, x2: m.left + w, y1: sy(y), y2: sy(y) }));
+    axis.append(svg("text", { x: m.left - 8, y: sy(y) + 4, "text-anchor": "end", text: fmt.usdM(y, 1) }));
+  }
+  for (const x of xs) axis.append(svg("text", { x: sx(x), y: m.top + h + 16, "text-anchor": "middle", text: fmt.pct(x, x < 0.01 ? 2 : 1) }));
+  axis.append(svg("text", { class: "axis-title", x: m.left + w / 2, y: height - 6, "text-anchor": "middle", text: "Risk limit (log scale)" }));
+  root.append(grid, axis);
+  const line = (key, cls) => svg("polyline", { class: `series ${cls}`, points: rows.map((r) => `${sx(r.risk_limit)},${sy(r[key])}`).join(" ") });
+  root.append(line("all_reserve_cost_usd", "s-observed"), line("optimal_cost_usd", "s-base"));
+  const tip = tooltip();
+  for (const r of rows) {
+    for (const [key, cls] of [["all_reserve_cost_usd", "s-observed"], ["optimal_cost_usd", "s-base"]]) {
+      root.append(svg("circle", { class: `dot ${cls}`, cx: sx(r.risk_limit), cy: sy(r[key]), r: 4 }));
+    }
+    const hit = svg("rect", { x: sx(r.risk_limit) - 14, y: m.top, width: 28, height: h, fill: "transparent" });
+    hit.addEventListener("pointermove", (event) =>
+      tip.show(event, [
+        el("div", { class: "t-title", text: `Risk limit ${fmt.pct(r.risk_limit, 2)}: capacity ${fmt.usdM(r.capacity_usd)}` }),
+        tipRow("Optimal stack", fmt.usd(r.optimal_cost_usd), "s-base"),
+        tipRow("All cash reserve", fmt.usd(r.all_reserve_cost_usd), "s-observed"),
+        tipRow("Credit to", fmt.usdM(r.layers_usd.credit[1])),
+      ]),
+    );
+    hit.addEventListener("pointerleave", () => tip.hide());
+    root.append(hit);
+  }
+}

@@ -23,6 +23,7 @@
       <nav class="tabs" aria-label="Views">
         <button class="tab" data-view="decision" aria-current="page">Decision</button>
         <button class="tab" data-view="scenarios">Scenarios</button>
+        <button class="tab" data-view="financing">Financing</button>
         <button class="tab" data-view="evidence">Evidence</button>
         <button class="tab" data-view="method">Method</button>
       </nav>
@@ -172,7 +173,13 @@
               <p class="hint">Log scale. Exceedance is strict: a payout equal to the reserve is covered.</p>
             </article>
             <article class="card">
-              <div class="card-head"><h2>Where the decision binds</h2></div>
+              <div class="card-head">
+                <h2>Where the decision binds</h2>
+                <div class="segmented" role="group" aria-label="Map method">
+                  <button id="map-exact" type="button" class="seg" aria-pressed="true">Exact</button>
+                  <button id="map-ml" type="button" class="seg" aria-pressed="false">ML surrogate</button>
+                </div>
+              </div>
               <div class="legend" id="map-legend"></div>
               <div id="map" class="chart" role="img"></div>
               <p class="hint" id="map-note"></p>
@@ -208,6 +215,21 @@
 
       <!-- Scenarios -->
       <section id="view-scenarios" class="view" data-view="scenarios" hidden>
+        <article class="card" id="range-evidence-card">
+          <div class="card-head">
+            <h2>Evidence for the shared-shock range</h2>
+            <div class="button-row">
+              <button id="use-evidence-range" type="button" class="button secondary">Use evidence range</button>
+              <button id="use-stress-range" type="button" class="button secondary">Use stress range</button>
+            </div>
+          </div>
+          <p class="hint" id="range-evidence-note">Loading the World Bank catalogue comparison...</p>
+          <div class="two-col">
+            <div id="range-evidence-quake" class="table-scroll"></div>
+            <div id="range-evidence-rain" class="table-scroll"></div>
+          </div>
+          <div id="range-evidence-reserves" class="table-scroll"></div>
+        </article>
         <article class="card">
           <div class="card-head">
             <h2>Reserve against the risk limit</h2>
@@ -226,6 +248,60 @@
           <p class="hint">Pin results from the Decision view to compare portfolios, limits and ranges side by side. Pins stay in this browser only.</p>
           <div id="pins" class="table-scroll"></div>
         </article>
+      </section>
+
+      <!-- Financing -->
+      <section id="view-financing" class="view" data-view="financing" hidden>
+        <article class="card">
+          <div class="card-head">
+            <h2>Cheapest way to fund the certified reserve</h2>
+            <button id="run-financing" type="button" class="button">Optimize</button>
+          </div>
+          <p class="hint">The certified reserve fixes how much money must be available. The optimizer splits it into a cash reserve, a contingent credit line and parametric insurance, stacked in that order, to minimise the expected cost over the term. Defaults come from the World Bank sovereign disaster risk finance framework, ADB Contingent Disaster Financing terms and the 2026 ADB disaster relief bond pricing; hover a field for its source.</p>
+          <form id="cost-form" class="cost-grid" novalidate aria-label="Cost assumptions">
+            <label class="field"><span class="field-label">Cash reserve cost <span class="field-help">% a year on idle cash</span></span><input id="reserve_cost_percent" type="number" step="0.1" min="0"></label>
+            <label class="field"><span class="field-label">Credit front-end fee <span class="field-help">%</span></span><input id="credit_front_end_fee_percent" type="number" step="0.05" min="0"></label>
+            <label class="field"><span class="field-label">Credit fee <span class="field-help">% a year, undrawn</span></span><input id="credit_fee_percent" type="number" step="0.05" min="0"></label>
+            <label class="field"><span class="field-label">Credit capacity charge <span class="field-help">% a year</span></span><input id="credit_capacity_charge_percent" type="number" step="0.01" min="0"></label>
+            <label class="field"><span class="field-label">Cost of a drawn credit dollar <span class="field-help">present value</span></span><input id="credit_drawn_cost" type="number" step="0.001" min="0"></label>
+            <label class="field"><span class="field-label">Insurance multiple <span class="field-help">premium / expected loss</span></span><input id="insurance_multiple" type="number" step="0.1" min="0"></label>
+            <label class="field"><span class="field-label">Credit line limit <span class="field-help">USD, blank = none</span></span><input id="credit_limit_usd" type="number" step="2500000" min="0" placeholder="none"></label>
+            <label class="field"><span class="field-label">Expected cost basis</span><select id="basis"><option value="base">Base assumptions</option><option value="bound">Certified bound across the range</option></select></label>
+          </form>
+          <div class="errors" id="financing-errors" role="alert" hidden></div>
+        </article>
+        <div id="financing-results" hidden>
+          <div class="kpis" id="financing-kpis"></div>
+          <div class="chart-grid">
+            <article class="card">
+              <h2>Optimal funding stack</h2>
+              <div class="legend"><span class="legend-item"><span class="swatch layer-reserve"></span>Cash reserve</span><span class="legend-item"><span class="swatch layer-credit"></span>Contingent credit</span><span class="legend-item"><span class="swatch layer-insurance"></span>Parametric insurance</span></div>
+              <div id="stack-chart" class="chart" role="img"></div>
+              <div id="plans-table" class="table-scroll"></div>
+            </article>
+            <article class="card">
+              <h2>Funding cost against the risk limit</h2>
+              <div class="legend"><span class="legend-item"><span class="swatch s-base"></span>Optimal stack</span><span class="legend-item"><span class="swatch s-observed"></span>All cash reserve</span></div>
+              <div id="frontier-chart" class="chart" role="img"></div>
+              <p class="hint" id="frontier-note"></p>
+            </article>
+          </div>
+          <div class="chart-grid">
+            <article class="card">
+              <h2>Pooling benefit</h2>
+              <p class="hint" id="pooling-note"></p>
+              <div id="pooling-table" class="table-scroll"></div>
+            </article>
+            <article class="card">
+              <div class="card-head">
+                <h2>Quantum optimization (QAOA)</h2>
+                <button id="run-qaoa" type="button" class="button secondary">Run QAOA on these inputs</button>
+              </div>
+              <p class="hint" id="qaoa-note"></p>
+              <div id="qaoa-table" class="table-scroll"></div>
+            </article>
+          </div>
+        </div>
       </section>
 
       <!-- Evidence -->
@@ -247,6 +323,17 @@
             <div class="legend"><span class="legend-item"><span class="swatch bar-a-swatch"></span>Adaptive refinement</span><span class="legend-item"><span class="swatch bar-b-swatch"></span>Uniform grid</span></div>
             <div id="evals-chart" class="chart" role="img"></div>
             <div id="evals-table" class="table-scroll"></div>
+          </article>
+          <article class="card">
+            <h2>ML surrogate of the assumption map</h2>
+            <p class="hint" id="surrogate-note"></p>
+            <div id="surrogate-table" class="table-scroll"></div>
+          </article>
+          <article class="card">
+            <h2>Amplitude estimation on Heron-class noise</h2>
+            <p class="hint" id="noise-note"></p>
+            <div id="noise-table" class="table-scroll"></div>
+            <div id="budget-table" class="table-scroll"></div>
           </article>
           <article class="card">
             <h2>How the contraction scales</h2>

@@ -846,6 +846,10 @@ def evidence() -> dict:
         "validation": read("validation.json"),
         "benchmark": read("benchmark/summary.json"),
         "quantum": read("quantum.json"),
+        "surrogate": read("surrogate.json"),
+        "noise": read("noise.json"),
+        "layering": read("layering.json"),
+        "range_evidence": read("evidence.json"),
         "complexity": list(_complexity()),
         "applicant": f"{APPLICANT} ({APPLICANT_ROLE})",
     }
@@ -1001,3 +1005,170 @@ def to_markdown(report: dict) -> str:
         )
     lines.append("")
     return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Financing, range evidence and the map surrogate
+
+COST_FIELDS = (
+    # payload key, label, CostParameters field, divisor, minimum, maximum
+    ("reserve_cost_percent", "Cash reserve cost (% a year)", "reserve_cost_per_year", 100, 0, 50),
+    (
+        "credit_front_end_fee_percent",
+        "Credit front-end fee (%)",
+        "credit_front_end_fee",
+        100,
+        0,
+        20,
+    ),
+    (
+        "credit_fee_percent",
+        "Credit fee on undrawn balance (% a year)",
+        "credit_fee_per_year",
+        100,
+        0,
+        20,
+    ),
+    (
+        "credit_capacity_charge_percent",
+        "Credit capacity charge (% a year)",
+        "credit_capacity_charge_per_year",
+        100,
+        0,
+        50,
+    ),
+    ("credit_drawn_cost", "Cost of a drawn credit dollar", "credit_drawn_cost", 1, 0, 5),
+    ("insurance_multiple", "Insurance multiple", "insurance_multiple", 1, 0, 20),
+)
+
+
+def cost_defaults() -> dict:
+    from .layering import SOURCES, CostParameters
+
+    base = CostParameters()
+    values = {
+        key: round(getattr(base, field) * divisor, 6)
+        for key, _, field, divisor, _, _ in COST_FIELDS
+    }
+    return {**values, "credit_limit_usd": "", "basis": "base", "sources": SOURCES}
+
+
+def parse_costs(payload: dict):
+    from .layering import CostParameters
+
+    errors, values = [], {}
+    defaults = cost_defaults()
+    for key, label, field, divisor, low, high in COST_FIELDS:
+        source = {key: payload.get(key, defaults[key])}
+        value = _number(source, key, label, errors, low, high)
+        if value is not None:
+            values[field] = value / divisor
+    limit = payload.get("credit_limit_usd", "")
+    if limit not in ("", None):
+        value = _number({"v": limit}, "v", "Credit line limit (USD)", errors, 0)
+        if value is not None:
+            values["credit_limit_usd"] = value
+    basis = payload.get("basis", "base")
+    if basis not in ("base", "bound"):
+        errors.append("Cost basis must be 'base' or 'bound'")
+    if errors:
+        raise InputError(errors)
+    return CostParameters(**values).validate(), basis
+
+
+def _bracket(parsed):
+    registers = choose_registers(parsed["pool"])
+    return bracket_reserve(
+        parsed["pool"],
+        parsed["shock_range"],
+        parsed["risk_limit"],
+        gap_usd=parsed["gap_usd"],
+        max_evaluations=parsed["max_evaluations"],
+        registers=registers,
+    )
+
+
+def financing(payload: dict) -> dict:
+    """Cheapest reserve / credit / insurance stack, pooling benefit and cost frontier."""
+    from .layering import frontier, risk_layering
+    from .pooling import pooling_benefit
+
+    parsed = parse_inputs(payload)
+    cost, basis = parse_costs(payload)
+    key = json.dumps({"financing": payload}, sort_keys=True, default=str)
+    if key in _CACHE:
+        return copy.deepcopy(_CACHE[key])
+    pool, shock_range, limit = parsed["pool"], parsed["shock_range"], parsed["risk_limit"]
+    result = _bracket(parsed)
+    plan = risk_layering(pool, shock_range, limit, cost, basis=basis, result=result)
+    report = {
+        "plan": plan,
+        "pooling": pooling_benefit(pool, shock_range, limit, result=result) if pool.n > 1 else None,
+        "frontier": frontier(pool, shock_range, cost=cost) if pool.n <= 5 else None,
+        "status": result.status,
+        "status_text": STATUS_TEXT.get(result.status, result.status),
+        "evaluations": result.total_evaluations,
+    }
+    recorded = results_dir() / "layering.json"
+    if recorded.is_file():
+        report["recorded_qaoa"] = json.loads(recorded.read_text(encoding="utf-8")).get("qaoa")
+    _remember(key, report)
+    return copy.deepcopy(report)
+
+
+def qaoa_run(payload: dict) -> dict:
+    """QAOA on the discretised layering choice for the current inputs (needs qiskit)."""
+    try:
+        from .qaoa import layering_qaoa, plan_inputs
+    except ImportError as error:  # pragma: no cover - optional dependency
+        raise InputError(
+            "QAOA needs the quantum extras: pip install -r requirements-quantum.txt"
+        ) from error
+    parsed = parse_inputs(payload)
+    cost, basis = parse_costs(payload)
+    key = json.dumps({"qaoa": payload}, sort_keys=True, default=str)
+    if key in _CACHE:
+        return copy.deepcopy(_CACHE[key])
+    result = _bracket(parsed)
+    inputs = plan_inputs(
+        parsed["pool"], parsed["shock_range"], parsed["risk_limit"], cost, basis, result
+    )
+    try:
+        report = layering_qaoa(inputs, k=6, reps=3, credit_limit_usd=cost.credit_limit_usd)
+    except ImportError as error:  # pragma: no cover - optional dependency
+        raise InputError(
+            "QAOA needs the quantum extras: pip install -r requirements-quantum.txt"
+        ) from error
+    _remember(key, report)
+    return copy.deepcopy(report)
+
+
+def surrogate(payload: dict) -> dict:
+    """Assumption map from the Gaussian-process surrogate, on the same grid as the exact map."""
+    from .surrogate import surrogate_map
+
+    parsed = parse_inputs(payload)
+    key = json.dumps({"surrogate": payload}, sort_keys=True, default=str)
+    if key in _CACHE:
+        return copy.deepcopy(_CACHE[key])
+    result = _bracket(parsed)
+    report = surrogate_map(
+        parsed["pool"],
+        parsed["shock_range"],
+        parsed["risk_limit"],
+        result.registers.lower,
+        result.upper_units,
+        map_resolution(parsed["pool"].n),
+    )
+    _remember(key, report)
+    return copy.deepcopy(report)
+
+
+def range_evidence() -> dict:
+    """World Bank catalogue evidence for the shared-shock range (public example)."""
+    path = results_dir() / "evidence.json"
+    if path.is_file():
+        return json.loads(path.read_text(encoding="utf-8"))
+    from .evidence import public_evidence
+
+    return public_evidence()

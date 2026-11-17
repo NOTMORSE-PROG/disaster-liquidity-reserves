@@ -6,10 +6,12 @@ import {
   el,
   exceedanceChart,
   fmt,
+  frontierChart,
   pairedBars,
   proofCostNote,
   queryChart,
   rampLegend,
+  stackChart,
   sweepChart,
   tensorDiagram,
 } from "./charts.js";
@@ -47,6 +49,13 @@ const state = {
   sweep: null,
   sweepKey: null,
   quantum: null,
+  mapMode: "exact",
+  surrogate: null,
+  financing: null,
+  financingKey: null,
+  costDefaults: null,
+  rangeEvidence: null,
+  qaoaLive: false,
   ticket: 0,
   defaultsTicket: 0,
   timer: null,
@@ -219,9 +228,11 @@ async function calculate(event) {
     state.lastPayload = payload;
     state.lastResult = body;
     state.quantum = null;
+    state.surrogate = null;
     renderDecision(body);
     setDirty(false);
     if (state.view === "scenarios") runSweep();
+    if (state.view === "financing") runFinancing();
   } catch (error) {
     if (ticket === state.ticket) showErrors(error.messages || [error.message]);
   } finally {
@@ -346,15 +357,49 @@ function renderDecisionCharts(r) {
     "aria-label",
     `Exceedance curves on a log scale with the base reserve ${r.base.reserve.text}, lower bound ${r.range_result.lower.text} and upper bound ${r.range_result.upper.text}. Use the Table button for values.`,
   );
-  const map = r.insights.map;
-  const { lo, hi } = assumptionMap($("map"), map);
-  rampLegend($("map-legend"), lo, hi);
-  $("map").setAttribute("aria-label", `Reserve needed at each assumption ranges from ${fmt.usdM(lo)} to ${fmt.usdM(hi)}.`);
-  $("map-note").textContent = `Colour: reserve needed if that one assumption were true. Outlined: the ${map.cells.length} refinement cells used for the certified bound. ${map.evaluations} map evaluations are for explanation only.`;
+  renderMap(r);
   const drivers = r.insights.drivers;
   $("drivers-note").textContent = `In the supporting scenario (${drivers.scenario}), payouts exceed ${fmt.usdM(drivers.amount_usd)} with probability ${fmt.pct(drivers.probability_exceeded)}. Bars show each country's expected payout in those outcomes.`;
   driverBars($("drivers"), drivers);
   chainMap($("chain"), r.insights.chain);
+}
+
+function renderMap(r) {
+  const exact = r.insights.map;
+  for (const [id, mode] of [["map-exact", "exact"], ["map-ml", "ml"]]) $(id).setAttribute("aria-pressed", String(state.mapMode === mode));
+  if (state.mapMode === "ml" && state.surrogate) {
+    const s = state.surrogate;
+    const blank = s.reserve_usd.map((row) => row.map(() => null));
+    const map = { ...exact, reserve_usd: s.reserve_usd, exceedance: blank, evaluated_points: s.evaluated_points };
+    const { lo, hi } = assumptionMap($("map"), map);
+    rampLegend($("map-legend"), lo, hi);
+    const a = exact.reserve_usd.flat();
+    const b = s.reserve_usd.flat();
+    const agree = a.filter((v, i) => v === b[i]).length / a.length;
+    $("map").setAttribute("aria-label", `Surrogate map of the reserve needed at each assumption, from ${fmt.usdM(lo)} to ${fmt.usdM(hi)}.`);
+    $("map-note").textContent = `Gaussian-process surrogate trained by active learning: ${s.evaluations} contractions instead of ${exact.evaluations}, stopped on ${s.stopping}. It matches the exact map on ${(100 * agree).toFixed(1)}% of grid points. Dots: the assumptions it evaluated. Exploration only; the certified bounds do not use it.`;
+    return;
+  }
+  const { lo, hi } = assumptionMap($("map"), exact);
+  rampLegend($("map-legend"), lo, hi);
+  $("map").setAttribute("aria-label", `Reserve needed at each assumption ranges from ${fmt.usdM(lo)} to ${fmt.usdM(hi)}.`);
+  $("map-note").textContent = `Colour: reserve needed if that one assumption were true. Outlined: the ${exact.cells.length} refinement cells used for the certified bound. ${exact.evaluations} map evaluations are for explanation only.`;
+}
+
+async function setMapMode(mode) {
+  state.mapMode = mode;
+  if (!state.lastResult) return;
+  if (mode === "ml" && !state.surrogate) {
+    $("map-note").textContent = "Training the surrogate...";
+    try {
+      const { body } = await post("/api/surrogate", state.lastPayload);
+      state.surrogate = body;
+    } catch (error) {
+      state.mapMode = "exact";
+      $("map-note").textContent = `Surrogate failed: ${(error.messages || [error.message]).join("; ")}`;
+    }
+  }
+  renderMap(state.lastResult);
 }
 
 function renderKeyTable(r) {
@@ -578,6 +623,53 @@ async function renderEvidence() {
       ),
     );
   }
+  renderStudies(e);
+}
+
+function renderStudies(e) {
+  if (e.surrogate) {
+    $("surrogate-note").textContent = `${e.surrogate.method}. ${e.surrogate.note}`;
+    $("surrogate-table").replaceChildren(
+      table(
+        ["Portfolio", "Limit", "Surrogate evaluations", "Exact map", "Cells exact", "Largest error", "Time: exact / surrogate"],
+        e.surrogate.rows.map((r) => [
+          r.countries === 2 ? "Public two-bond" : `Synthetic ${r.countries} countries`,
+          fmt.pct(r.risk_limit, 1),
+          r.surrogate_evaluations,
+          r.exact_evaluations,
+          `${r.cells_correct_percent.toFixed(1)}%`,
+          fmt.usd(r.max_abs_error_usd),
+          `${r.exact_seconds.toFixed(2)} s / ${r.surrogate_seconds.toFixed(2)} s`,
+        ]),
+        { className: "dense" },
+      ),
+    );
+  }
+  if (e.noise) {
+    const n = e.noise;
+    $("noise-note").textContent = `Amplitude estimation with Grover powers ${n.study.powers.join(", ")} on the public two-bond payout law (6 qubits, true value ${fmt.pct(n.study.truth)}), compiled to cz/rz/sx/x and simulated exactly (Aer density matrix) with IBM Heron r2 median error rates, scaled down by the factor shown. ${n.study.repeats} repeats of ${fmt.num(n.study.shots_per_power)} shots per power. ${n.reading}`;
+    $("noise-table").replaceChildren(
+      table(
+        ["Error scale", "CZ error", "CZ gates at depth 8", "Flag probability at depth 8 (ideal)", "MLAE RMSE", "Noise-aware RMSE"],
+        n.study.rows.map((r) => [
+          r.error_scale === 0 ? "ideal" : `${r.error_scale}x Heron r2`,
+          r.cz_error ? fmt.sci(r.cz_error) : "0",
+          fmt.num(r.cz_gates["8"]),
+          `${fmt.pct(r.flag_probability["8"], 1)} (${fmt.pct(r.ideal_flag_probability["8"], 1)})`,
+          fmt.sci(r.mlae_rmse),
+          fmt.sci(r.noise_aware_mlae_rmse),
+        ]),
+        { className: "dense" },
+      ),
+    );
+    $("budget-table").replaceChildren(
+      table(
+        ["Full circuit", "Qubits", "Grover depth", "Two-qubit gates", "Error rate needed", "Fidelity at today's rate", "Improvement needed"],
+        n.error_budget.map((r) => [r.case, r.qubits, fmt.num(r.grover_depth), fmt.num(r.two_qubit_gates), fmt.sci(r.error_needed_for_half_fidelity), r.fidelity_at_heron_r2 < 1e-4 ? "< 0.01%" : fmt.pct(r.fidelity_at_heron_r2, 2), `${fmt.num(r.improvement_needed)}x`]),
+        { className: "dense", caption: "Error budget: two-qubit error rate that keeps the full circuit at fidelity one half" },
+      ),
+    );
+  }
 }
 
 function renderQuantum(study, source) {
@@ -696,6 +788,204 @@ async function runQuantum() {
   }
 }
 
+// --- financing ---------------------------------------------------------------------------
+
+const COST_IDS = [
+  ["reserve_cost_percent", "reserve_cost"],
+  ["credit_front_end_fee_percent", "credit_fees"],
+  ["credit_fee_percent", "credit_fees"],
+  ["credit_capacity_charge_percent", "credit_capacity"],
+  ["credit_drawn_cost", "credit_drawn"],
+  ["insurance_multiple", "insurance_multiple"],
+];
+
+async function loadCostDefaults() {
+  if (state.costDefaults) return;
+  const { body } = await api("/api/cost-defaults");
+  state.costDefaults = body;
+  for (const [id, source] of COST_IDS) {
+    $(id).value = body[id];
+    $(id).title = `Default ${body[id]}: ${body.sources[source]}`;
+  }
+  $("credit_limit_usd").value = "";
+  $("basis").value = body.basis;
+}
+
+function readCosts() {
+  const costs = {};
+  for (const [id] of COST_IDS) costs[id] = $(id).value;
+  costs.credit_limit_usd = $("credit_limit_usd").value;
+  costs.basis = $("basis").value;
+  return costs;
+}
+
+async function runFinancing(force = false) {
+  if (!state.lastPayload) {
+    $("financing-errors").replaceChildren(el("strong", { text: "Calculate a reserve in the Decision view first." }));
+    $("financing-errors").hidden = false;
+    return;
+  }
+  await loadCostDefaults();
+  const payload = { ...state.lastPayload, ...readCosts() };
+  const key = JSON.stringify(payload);
+  if (!force && key === state.financingKey && state.financing) return renderFinancing(state.financing);
+  $("financing-errors").hidden = true;
+  $("run-financing").disabled = true;
+  $("run-financing").textContent = "Optimizing...";
+  try {
+    const { body } = await post("/api/financing", payload);
+    state.financing = body;
+    state.financingKey = key;
+    renderFinancing(body);
+  } catch (error) {
+    $("financing-errors").replaceChildren(el("strong", { text: "Please correct these inputs:" }), el("ul", {}, (error.messages || [error.message]).map((m) => el("li", { text: m }))));
+    $("financing-errors").hidden = false;
+  } finally {
+    $("run-financing").disabled = false;
+    $("run-financing").textContent = "Optimize";
+  }
+}
+
+const LAYER_LABEL = { reserve: "Cash reserve", credit: "Contingent credit", insurance: "Parametric insurance" };
+const PLAN_LABEL = {
+  all_reserve: "All cash reserve",
+  reserve_and_insurance: "Reserve and insurance only",
+  credit_and_insurance: "Credit and insurance only",
+  all_insurance: "All insurance",
+};
+
+function layerText(layers) {
+  return Object.entries(layers)
+    .filter(([, [a, b]]) => b > a)
+    .map(([k, [a, b]]) => `${LAYER_LABEL[k]} ${fmt.usdM(a)}–${fmt.usdM(b)}`)
+    .join("; ") || "nothing needed";
+}
+
+function renderFinancing(f) {
+  $("financing-results").hidden = false;
+  const plan = f.plan;
+  const best = plan.optimal;
+  const kpis = [
+    kpi(fmt.usdM(plan.capacity_usd), "Capacity to fund", `Certified reserve at ${fmt.pct(plan.risk_limit, 2)} (${f.status_text})`),
+    kpi(fmt.usdM(best.total_cost_usd), "Expected cost of the optimal stack", `Over ${plan.term_years} years, ${plan.basis === "base" ? "base assumptions" : "certified bound"}`),
+    kpi(`${plan.saving_vs_all_reserve_percent.toFixed(1)}%`, "Cheaper than all cash", `${fmt.usdM(plan.saving_vs_all_reserve_usd)} saved over the term`),
+  ];
+  if (f.pooling) kpis.push(kpi(`${f.pooling.saving_percent.toFixed(1)}%`, "Pooling saving", `${fmt.usdM(f.pooling.pooled_reserve_usd)} pooled vs ${fmt.usdM(f.pooling.standalone_total_usd)} standalone`));
+  $("financing-kpis").replaceChildren(...kpis);
+  stackChart($("stack-chart"), plan);
+  $("stack-chart").setAttribute("aria-label", `Optimal stack: ${layerText(best.layers_usd)}.`);
+  const rows = [["Optimal", best], ...Object.entries(plan.alternatives).map(([k, v]) => [PLAN_LABEL[k], v])];
+  $("plans-table").replaceChildren(
+    table(
+      ["Plan", { label: "Layers", wrap: true }, "Expected cost", "vs optimal"],
+      rows.map(([label, p]) => [label, layerText(p.layers_usd), fmt.usd(p.total_cost_usd), p === best ? "–" : `+${fmt.usd(p.total_cost_usd - best.total_cost_usd)}`]),
+      { className: "dense" },
+    ),
+  );
+  for (const row of $("plans-table").querySelectorAll("tbody tr")) row.children[1].classList.add("wrap");
+  if (f.frontier) {
+    frontierChart($("frontier-chart"), f.frontier);
+    const tight = f.frontier[0];
+    $("frontier-note").textContent = `Each point re-certifies the reserve at that limit and re-optimizes the stack. At ${fmt.pct(tight.risk_limit, 2)} the capacity is ${fmt.usdM(tight.capacity_usd)}.`;
+  } else {
+    $("frontier-chart").replaceChildren();
+    $("frontier-note").textContent = "The frontier is computed for pools of up to five countries to keep the view responsive.";
+  }
+  if (f.pooling) {
+    const p = f.pooling;
+    $("pooling-note").textContent = `Each country alone at the same ${fmt.pct(p.risk_limit, 2)} limit needs ${fmt.usdM(p.standalone_total_usd)} in total; the pool needs ${fmt.usdM(p.pooled_reserve_usd)}. Contributions split the pooled reserve by each member's expected payout when pooled payouts exceed ${fmt.usdM(p.allocation_amount_usd)} (${p.allocation_scenario}).`;
+    $("pooling-table").replaceChildren(
+      table(
+        ["Member", "Alone", "Split pro rata", "Split by tail risk"],
+        p.members.map((m) => [`${m.country} (${m.name})`, fmt.usdM(m.reserve_usd), fmt.usdM(m.standalone_share_usd), fmt.usdM(m.shortfall_contribution_usd)]),
+        { className: "dense" },
+      ),
+    );
+  } else {
+    $("pooling-note").textContent = "Pooling needs at least two countries.";
+    $("pooling-table").replaceChildren();
+  }
+  if (f.recorded_qaoa && !state.qaoaLive) renderQaoa(f.recorded_qaoa, "Recorded study, public two-bond example at 1.5%");
+}
+
+function renderQaoa(runs, source) {
+  const list = Array.isArray(runs) ? runs : [runs];
+  const first = list[0];
+  $("qaoa-note").textContent = `${source}. The choice of breakpoints is a ${first.variables}-variable QUBO (one-hot levels, ordering penalty) solved by CVaR-QAOA with ${first.reps} layers, trained on the exact simulated state and sampled with ${fmt.num(first.shots)} seeded shots on Qiskit Aer. Brute force over every bitstring checks the answer. Candidate levels: ${first.candidate_levels_usd.map((v) => fmt.usdM(v)).join(", ")}.`;
+  $("qaoa-table").replaceChildren(
+    table(
+      ["Mixer", "Qubits", "CX", "P(optimum)", "Random", "Most frequent valid plan", "Optimum found"],
+      list.map((q) => [
+        q.mixer.replace(" (one-hot preserving)", ""),
+        q.qubits,
+        fmt.num(q.compiled_cx),
+        fmt.pct(q.probability_optimal_sampled, 1),
+        fmt.pct(q.uniform_probability_optimal, 2),
+        layerText(q.most_frequent_feasible_sample),
+        q.qaoa_finds_optimum ? "yes" : "no",
+      ]),
+      { className: "dense" },
+    ),
+  );
+  for (const row of $("qaoa-table").querySelectorAll("tbody tr")) row.children[5].classList.add("wrap");
+}
+
+async function runQaoa() {
+  if (!state.lastPayload) return;
+  $("run-qaoa").disabled = true;
+  $("qaoa-note").textContent = "Training and sampling the QAOA circuit, usually under a minute...";
+  try {
+    const { body } = await post("/api/qaoa", { ...state.lastPayload, ...readCosts() });
+    state.qaoaLive = true;
+    renderQaoa(body, "Current inputs");
+  } catch (error) {
+    $("qaoa-note").textContent = `QAOA failed: ${(error.messages || [error.message]).join("; ")}`;
+  } finally {
+    $("run-qaoa").disabled = false;
+  }
+}
+
+// --- range evidence -------------------------------------------------------------------------
+
+async function renderRangeEvidence() {
+  if (!state.rangeEvidence) {
+    const { body } = await api("/api/range-evidence");
+    state.rangeEvidence = body;
+  }
+  const e = state.rangeEvidence;
+  const q = e.earthquake;
+  const r = e.rain;
+  $("range-evidence-note").textContent = `Each country's trigger in the ${e.source} is calibrated to its bond trigger rate, then the catalogue is searched for events that trigger both. Earthquake: ${q.joint_trigger_events} joint events among ${q.trigger_events.KGZ} and ${q.trigger_events.TJK} triggering events. Rain: ${r.joint_trigger_events} joint event among ${r.trigger_events.KGZ} and ${r.trigger_events.TJK}. The evidence range spans every source below; the stress range adds the organizer's doubled common-shock scenario. These figures are for the public KGZ–TJK example.`;
+  const rows = (list, f) => list.map((s) => [s.source, f(s.value)]);
+  $("range-evidence-quake").replaceChildren(table(["Shared earthquake source", "x base"], rows(e.earthquake_multiplier_sources, (v) => `${v.toFixed(3)}x`), { className: "dense" }));
+  $("range-evidence-rain").replaceChildren(table(["Shared rain source", "Share"], rows(e.rain_share_sources, (v) => fmt.pct(v, 1)), { className: "dense" }));
+  for (const id of ["range-evidence-quake", "range-evidence-rain"]) {
+    for (const row of $(id).querySelectorAll("tbody tr")) row.children[0].classList.add("wrap");
+  }
+  if (e.reserves) {
+    $("range-evidence-reserves").replaceChildren(
+      table(
+        ["Range", "Risk limit", "Certified reserve", "Base reserve", "Evaluations"],
+        e.reserves.map((x) => [x.range === "evidence_range" ? "Evidence (0–1x, 0–25%)" : "Stress (0–2x, 0–25%)", fmt.pct(x.risk_limit, 1), x.lower_usd === x.upper_usd ? fmt.usdM(x.upper_usd) : `${fmt.usdM(x.lower_usd)} to ${fmt.usdM(x.upper_usd)}`, fmt.usdM(x.base_usd), x.evaluations]),
+        { className: "dense", caption: "Public two-bond example" },
+      ),
+    );
+  }
+}
+
+function useRange(kind) {
+  const e = state.rangeEvidence;
+  if (!e) return;
+  const spec = kind === "evidence" ? e.evidence_range : e.stress_range;
+  $("earthquake_multiplier_low").value = spec.earthquake_multiplier[0];
+  $("earthquake_multiplier_high").value = spec.earthquake_multiplier[1];
+  $("rain_share_percent_low").value = +(100 * spec.rain_share[0]).toFixed(4);
+  $("rain_share_percent_high").value = +(100 * spec.rain_share[1]).toFixed(4);
+  syncSliders();
+  setDirty(true);
+  calculate();
+}
+
 // --- views and export -------------------------------------------------------------------
 
 function showView(view) {
@@ -710,7 +1000,9 @@ function showView(view) {
   if (view === "scenarios") {
     runSweep();
     renderPins();
-  } else if (view === "evidence") renderEvidence().catch(fail);
+    renderRangeEvidence().catch(fail);
+  } else if (view === "financing") runFinancing().catch(fail);
+  else if (view === "evidence") renderEvidence().catch(fail);
   else if (view === "method") renderMethod().catch(fail);
   else if (state.lastResult) renderDecisionCharts(state.lastResult);
 }
@@ -782,6 +1074,16 @@ async function init() {
   });
   $("run-sweep").addEventListener("click", () => runSweep(true));
   $("run-quantum").addEventListener("click", runQuantum);
+  $("map-exact").addEventListener("click", () => setMapMode("exact"));
+  $("map-ml").addEventListener("click", () => setMapMode("ml"));
+  $("run-financing").addEventListener("click", () => runFinancing(true));
+  $("cost-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    runFinancing(true);
+  });
+  $("run-qaoa").addEventListener("click", runQaoa);
+  $("use-evidence-range").addEventListener("click", () => useRange("evidence"));
+  $("use-stress-range").addEventListener("click", () => useRange("stress"));
   $("export-json").addEventListener("click", () => download("json"));
   $("export-md").addEventListener("click", () => download("md"));
   $("export-pdf").addEventListener("click", openReport);
@@ -799,12 +1101,12 @@ async function init() {
   });
   window.addEventListener("hashchange", () => {
     const view = window.location.hash.replace("#", "");
-    if (["decision", "scenarios", "evidence", "method"].includes(view) && view !== state.view) showView(view);
+    if (["decision", "scenarios", "financing", "evidence", "method"].includes(view) && view !== state.view) showView(view);
   });
   setDirty(false);
   await calculate();
   const initial = window.location.hash.replace("#", "");
-  if (["scenarios", "evidence", "method"].includes(initial)) showView(initial);
+  if (["scenarios", "financing", "evidence", "method"].includes(initial)) showView(initial);
 }
 
 init().catch((error) => {

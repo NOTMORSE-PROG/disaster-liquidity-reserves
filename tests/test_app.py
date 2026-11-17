@@ -173,3 +173,27 @@ def test_sweep_quantum_and_evidence_endpoints(server):
     data = json.loads(body)
     assert status == 200 and data["complexity"][0]["countries"] == 2
     assert request(server, "/report")[0] == 200
+
+
+def test_financing_endpoints(server):
+    payload = default_inputs("public-two-bond")
+    status, _, body = request(server, "/api/financing", payload)
+    assert status == 200
+    report = json.loads(body)
+    assert report["plan"]["capacity_usd"] == 87_500_000
+    assert report["pooling"]["saving_percent"] > 30
+    assert len(report["frontier"]) >= 5
+    status, _, body = request(server, "/api/financing", {**payload, "insurance_multiple": "abc"})
+    assert status == 422 and b"Insurance multiple" in body
+    status, _, body = request(server, "/api/cost-defaults")
+    assert status == 200 and json.loads(body)["insurance_multiple"] == 2.6
+
+
+def test_range_evidence_and_surrogate_endpoints(server):
+    status, _, body = request(server, "/api/range-evidence")
+    assert status == 200
+    assert json.loads(body)["evidence_range"]["earthquake_multiplier"] == [0.0, 1.0]
+    status, _, body = request(server, "/api/surrogate", default_inputs("public-two-bond"))
+    assert status == 200
+    report = json.loads(body)
+    assert report["evaluations"] < report["exact_evaluations"]

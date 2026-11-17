@@ -23,11 +23,16 @@ from ..examples import example_catalogue
 from ..portfolio import InputError
 from ..service import (
     calculate,
+    cost_defaults,
     default_inputs,
     evidence,
     export,
+    financing,
+    qaoa_run,
     quantum_check,
+    range_evidence,
     recorded_validation,
+    surrogate,
     sweep,
 )
 
@@ -135,6 +140,8 @@ class Handler(BaseHTTPRequestHandler):
             ),
             "/api/validation": lambda: self._json(200, recorded_validation()),
             "/api/evidence": lambda: self._json(200, evidence()),
+            "/api/range-evidence": lambda: self._json(200, range_evidence()),
+            "/api/cost-defaults": lambda: self._json(200, cost_defaults()),
         }
         if url.path in routes:
             self._guarded(routes[url.path])
@@ -149,7 +156,14 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         url = urlparse(self.path)
-        actions = {"/api/calculate": calculate, "/api/sweep": sweep, "/api/quantum": quantum_check}
+        actions = {
+            "/api/calculate": calculate,
+            "/api/sweep": sweep,
+            "/api/quantum": quantum_check,
+            "/api/financing": financing,
+            "/api/qaoa": qaoa_run,
+            "/api/surrogate": surrogate,
+        }
         if url.path in actions:
             action = actions[url.path]
             self._guarded(lambda: self._json(200, action(self._body())))
