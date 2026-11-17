@@ -1,0 +1,1869 @@
+{
+  "schema": "dlr-layering-v1",
+  "sources": {
+    "reserve_cost": "Clarke, Mahul, Poulter & Teh (2016), World Bank WPS 7721: (i - r)/(1 + i) with i = 5.5%, r = 1%",
+    "credit_fees": "ADB Contingent Disaster Financing, Crisis Preparedness and Response Toolkit (2026): 0.25% front-end fee, 0.25% a year on the undrawn balance",
+    "credit_drawn": "Clarke et al. (2016) case study: (1 + c)/(1 + i) with c = 2.5%, i = 5.5%",
+    "credit_capacity": "Clarke et al. (2016): beta (i - c)/(1 + i) per dollar arranged, beta = 1",
+    "insurance_multiple": "ADB 2026 Kyrgyz Republic disaster relief bond: 6.00% risk margin over 2.296% expected loss (Artemis deal directory)"
+  },
+  "defaults": {
+    "reserve_cost_per_year": 0.043,
+    "credit_front_end_fee": 0.0025,
+    "credit_fee_per_year": 0.0025,
+    "credit_drawn_cost": 0.972,
+    "credit_capacity_charge_per_year": 0.0284,
+    "insurance_multiple": 2.6,
+    "credit_limit_usd": null
+  },
+  "plans": [
+    {
+      "pool": "Public two-bond example (ADB 2026 KGZ and TJK bonds)",
+      "risk_limit": 0.015,
+      "term_years": 3.0,
+      "capacity_usd": 87500000.0,
+      "capacity_status": "resolved",
+      "basis": "base",
+      "parameters": {
+        "reserve_cost_per_year": 0.043,
+        "credit_front_end_fee": 0.0025,
+        "credit_fee_per_year": 0.0025,
+        "credit_drawn_cost": 0.972,
+        "credit_capacity_charge_per_year": 0.0284,
+        "insurance_multiple": 2.6,
+        "credit_limit_usd": null
+      },
+      "sources": {
+        "reserve_cost": "Clarke, Mahul, Poulter & Teh (2016), World Bank WPS 7721: (i - r)/(1 + i) with i = 5.5%, r = 1%",
+        "credit_fees": "ADB Contingent Disaster Financing, Crisis Preparedness and Response Toolkit (2026): 0.25% front-end fee, 0.25% a year on the undrawn balance",
+        "credit_drawn": "Clarke et al. (2016) case study: (1 + c)/(1 + i) with c = 2.5%, i = 5.5%",
+        "credit_capacity": "Clarke et al. (2016): beta (i - c)/(1 + i) per dollar arranged, beta = 1",
+        "insurance_multiple": "ADB 2026 Kyrgyz Republic disaster relief bond: 6.00% risk margin over 2.296% expected loss (Artemis deal directory)"
+      },
+      "optimal": {
+        "layers_usd": {
+          "reserve": [
+            0.0,
+            0.0
+          ],
+          "credit": [
+            0.0,
+            70000000.0
+          ],
+          "insurance": [
+            70000000.0,
+            87500000.0
+          ]
+        },
+        "expected_payout_usd": {
+          "reserve": 0.0,
+          "credit": 9611292.18907391,
+          "insurance": 260216.8681205637
+        },
+        "cost_usd": {
+          "reserve": 0.0,
+          "credit": 16006176.00777984,
+          "insurance": 676563.8571134657
+        },
+        "total_cost_usd": 16682739.864893306
+      },
+      "alternatives": {
+        "all_reserve": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              87500000.0
+            ],
+            "credit": [
+              87500000.0,
+              87500000.0
+            ],
+            "insurance": [
+              87500000.0,
+              87500000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 9871509.057194471,
+            "credit": 0.0,
+            "insurance": 0.0
+          },
+          "cost_usd": {
+            "reserve": 19885584.388816386,
+            "credit": 0.0,
+            "insurance": 0.0
+          },
+          "total_cost_usd": 19885584.388816386
+        },
+        "reserve_and_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              52500000.0
+            ],
+            "credit": [
+              52500000.0,
+              52500000.0
+            ],
+            "insurance": [
+              52500000.0,
+              87500000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 8377266.7362083625,
+            "credit": 0.0,
+            "insurance": 1494242.3209861098
+          },
+          "cost_usd": {
+            "reserve": 14069099.327237483,
+            "credit": 0.0,
+            "insurance": 3885030.0345638855
+          },
+          "total_cost_usd": 17954129.361801367
+        },
+        "credit_and_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              0.0
+            ],
+            "credit": [
+              0.0,
+              70000000.0
+            ],
+            "insurance": [
+              70000000.0,
+              87500000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 0.0,
+            "credit": 9611292.18907391,
+            "insurance": 260216.8681205637
+          },
+          "cost_usd": {
+            "reserve": 0.0,
+            "credit": 16006176.00777984,
+            "insurance": 676563.8571134657
+          },
+          "total_cost_usd": 16682739.864893306
+        },
+        "all_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              0.0
+            ],
+            "credit": [
+              0.0,
+              0.0
+            ],
+            "insurance": [
+              0.0,
+              87500000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 0.0,
+            "credit": 0.0,
+            "insurance": 9871509.057194471
+          },
+          "cost_usd": {
+            "reserve": 0.0,
+            "credit": 0.0,
+            "insurance": 25665923.548705626
+          },
+          "total_cost_usd": 25665923.548705626
+        }
+      },
+      "saving_vs_all_reserve_usd": 3202844.5239230804,
+      "saving_vs_all_reserve_percent": 16.106363591327767,
+      "candidates": 36,
+      "method": "exact scan over every attainable breakpoint (prefix minimum)"
+    },
+    {
+      "pool": "Public two-bond example (ADB 2026 KGZ and TJK bonds)",
+      "risk_limit": 0.015,
+      "term_years": 3.0,
+      "capacity_usd": 87500000.0,
+      "capacity_status": "resolved",
+      "basis": "bound",
+      "parameters": {
+        "reserve_cost_per_year": 0.043,
+        "credit_front_end_fee": 0.0025,
+        "credit_fee_per_year": 0.0025,
+        "credit_drawn_cost": 0.972,
+        "credit_capacity_charge_per_year": 0.0284,
+        "insurance_multiple": 2.6,
+        "credit_limit_usd": null
+      },
+      "sources": {
+        "reserve_cost": "Clarke, Mahul, Poulter & Teh (2016), World Bank WPS 7721: (i - r)/(1 + i) with i = 5.5%, r = 1%",
+        "credit_fees": "ADB Contingent Disaster Financing, Crisis Preparedness and Response Toolkit (2026): 0.25% front-end fee, 0.25% a year on the undrawn balance",
+        "credit_drawn": "Clarke et al. (2016) case study: (1 + c)/(1 + i) with c = 2.5%, i = 5.5%",
+        "credit_capacity": "Clarke et al. (2016): beta (i - c)/(1 + i) per dollar arranged, beta = 1",
+        "insurance_multiple": "ADB 2026 Kyrgyz Republic disaster relief bond: 6.00% risk margin over 2.296% expected loss (Artemis deal directory)"
+      },
+      "optimal": {
+        "layers_usd": {
+          "reserve": [
+            0.0,
+            0.0
+          ],
+          "credit": [
+            0.0,
+            70000000.0
+          ],
+          "insurance": [
+            70000000.0,
+            87500000.0
+          ]
+        },
+        "expected_payout_usd": {
+          "reserve": 0.0,
+          "credit": 10933836.500497451,
+          "insurance": 389784.92782563495
+        },
+        "cost_usd": {
+          "reserve": 0.0,
+          "credit": 17291689.078483522,
+          "insurance": 1013440.8123466509
+        },
+        "total_cost_usd": 18305129.890830174
+      },
+      "alternatives": {
+        "all_reserve": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              87500000.0
+            ],
+            "credit": [
+              87500000.0,
+              87500000.0
+            ],
+            "insurance": [
+              87500000.0,
+              87500000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 11323621.428323086,
+            "credit": 0.0,
+            "insurance": 0.0
+          },
+          "cost_usd": {
+            "reserve": 21150374.26406941,
+            "credit": 0.0,
+            "insurance": 0.0
+          },
+          "total_cost_usd": 21150374.26406941
+        },
+        "reserve_and_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              70000000.0
+            ],
+            "credit": [
+              70000000.0,
+              70000000.0
+            ],
+            "insurance": [
+              70000000.0,
+              87500000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 10933836.500497451,
+            "credit": 0.0,
+            "insurance": 389784.92782563495
+          },
+          "cost_usd": {
+            "reserve": 18553371.59193328,
+            "credit": 0.0,
+            "insurance": 1013440.8123466509
+          },
+          "total_cost_usd": 19566812.404279932
+        },
+        "credit_and_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              0.0
+            ],
+            "credit": [
+              0.0,
+              70000000.0
+            ],
+            "insurance": [
+              70000000.0,
+              87500000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 0.0,
+            "credit": 10933836.500497451,
+            "insurance": 389784.92782563495
+          },
+          "cost_usd": {
+            "reserve": 0.0,
+            "credit": 17291689.078483522,
+            "insurance": 1013440.8123466509
+          },
+          "total_cost_usd": 18305129.890830174
+        },
+        "all_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              0.0
+            ],
+            "credit": [
+              0.0,
+              0.0
+            ],
+            "insurance": [
+              0.0,
+              87500000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 0.0,
+            "credit": 0.0,
+            "insurance": 11323621.428323086
+          },
+          "cost_usd": {
+            "reserve": 0.0,
+            "credit": 0.0,
+            "insurance": 29441415.713640027
+          },
+          "total_cost_usd": 29441415.713640027
+        }
+      },
+      "saving_vs_all_reserve_usd": 2845244.373239234,
+      "saving_vs_all_reserve_percent": 13.452454021453324,
+      "candidates": 36,
+      "method": "exact scan over every attainable breakpoint (prefix minimum)"
+    },
+    {
+      "pool": "Public two-bond example (ADB 2026 KGZ and TJK bonds)",
+      "risk_limit": 0.005,
+      "term_years": 3.0,
+      "capacity_usd": 105000000.0,
+      "capacity_status": "resolved",
+      "basis": "base",
+      "parameters": {
+        "reserve_cost_per_year": 0.043,
+        "credit_front_end_fee": 0.0025,
+        "credit_fee_per_year": 0.0025,
+        "credit_drawn_cost": 0.972,
+        "credit_capacity_charge_per_year": 0.0284,
+        "insurance_multiple": 2.6,
+        "credit_limit_usd": null
+      },
+      "sources": {
+        "reserve_cost": "Clarke, Mahul, Poulter & Teh (2016), World Bank WPS 7721: (i - r)/(1 + i) with i = 5.5%, r = 1%",
+        "credit_fees": "ADB Contingent Disaster Financing, Crisis Preparedness and Response Toolkit (2026): 0.25% front-end fee, 0.25% a year on the undrawn balance",
+        "credit_drawn": "Clarke et al. (2016) case study: (1 + c)/(1 + i) with c = 2.5%, i = 5.5%",
+        "credit_capacity": "Clarke et al. (2016): beta (i - c)/(1 + i) per dollar arranged, beta = 1",
+        "insurance_multiple": "ADB 2026 Kyrgyz Republic disaster relief bond: 6.00% risk margin over 2.296% expected loss (Artemis deal directory)"
+      },
+      "optimal": {
+        "layers_usd": {
+          "reserve": [
+            0.0,
+            0.0
+          ],
+          "credit": [
+            0.0,
+            70000000.0
+          ],
+          "insurance": [
+            70000000.0,
+            105000000.0
+          ]
+        },
+        "expected_payout_usd": {
+          "reserve": 0.0,
+          "credit": 9611292.18907391,
+          "insurance": 357113.7259127482
+        },
+        "cost_usd": {
+          "reserve": 0.0,
+          "credit": 16006176.00777984,
+          "insurance": 928495.6873731454
+        },
+        "total_cost_usd": 16934671.695152987
+      },
+      "alternatives": {
+        "all_reserve": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              105000000.0
+            ],
+            "credit": [
+              105000000.0,
+              105000000.0
+            ],
+            "insurance": [
+              105000000.0,
+              105000000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 9968405.914986657,
+            "credit": 0.0,
+            "insurance": 0.0
+          },
+          "cost_usd": {
+            "reserve": 22227481.55195338,
+            "credit": 0.0,
+            "insurance": 0.0
+          },
+          "total_cost_usd": 22227481.55195338
+        },
+        "reserve_and_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              52500000.0
+            ],
+            "credit": [
+              52500000.0,
+              52500000.0
+            ],
+            "insurance": [
+              52500000.0,
+              105000000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 8377266.7362083625,
+            "credit": 0.0,
+            "insurance": 1591139.1787782942
+          },
+          "cost_usd": {
+            "reserve": 14069099.327237483,
+            "credit": 0.0,
+            "insurance": 4136961.8648235654
+          },
+          "total_cost_usd": 18206061.192061048
+        },
+        "credit_and_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              0.0
+            ],
+            "credit": [
+              0.0,
+              70000000.0
+            ],
+            "insurance": [
+              70000000.0,
+              105000000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 0.0,
+            "credit": 9611292.18907391,
+            "insurance": 357113.7259127482
+          },
+          "cost_usd": {
+            "reserve": 0.0,
+            "credit": 16006176.00777984,
+            "insurance": 928495.6873731454
+          },
+          "total_cost_usd": 16934671.695152987
+        },
+        "all_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              0.0
+            ],
+            "credit": [
+              0.0,
+              0.0
+            ],
+            "insurance": [
+              0.0,
+              105000000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 0.0,
+            "credit": 0.0,
+            "insurance": 9968405.914986657
+          },
+          "cost_usd": {
+            "reserve": 0.0,
+            "credit": 0.0,
+            "insurance": 25917855.37896531
+          },
+          "total_cost_usd": 25917855.37896531
+        }
+      },
+      "saving_vs_all_reserve_usd": 5292809.856800392,
+      "saving_vs_all_reserve_percent": 23.812008771345727,
+      "candidates": 43,
+      "method": "exact scan over every attainable breakpoint (prefix minimum)"
+    },
+    {
+      "pool": "Public two-bond example (ADB 2026 KGZ and TJK bonds)",
+      "risk_limit": 0.005,
+      "term_years": 3.0,
+      "capacity_usd": 105000000.0,
+      "capacity_status": "resolved",
+      "basis": "bound",
+      "parameters": {
+        "reserve_cost_per_year": 0.043,
+        "credit_front_end_fee": 0.0025,
+        "credit_fee_per_year": 0.0025,
+        "credit_drawn_cost": 0.972,
+        "credit_capacity_charge_per_year": 0.0284,
+        "insurance_multiple": 2.6,
+        "credit_limit_usd": null
+      },
+      "sources": {
+        "reserve_cost": "Clarke, Mahul, Poulter & Teh (2016), World Bank WPS 7721: (i - r)/(1 + i) with i = 5.5%, r = 1%",
+        "credit_fees": "ADB Contingent Disaster Financing, Crisis Preparedness and Response Toolkit (2026): 0.25% front-end fee, 0.25% a year on the undrawn balance",
+        "credit_drawn": "Clarke et al. (2016) case study: (1 + c)/(1 + i) with c = 2.5%, i = 5.5%",
+        "credit_capacity": "Clarke et al. (2016): beta (i - c)/(1 + i) per dollar arranged, beta = 1",
+        "insurance_multiple": "ADB 2026 Kyrgyz Republic disaster relief bond: 6.00% risk margin over 2.296% expected loss (Artemis deal directory)"
+      },
+      "optimal": {
+        "layers_usd": {
+          "reserve": [
+            0.0,
+            0.0
+          ],
+          "credit": [
+            0.0,
+            70000000.0
+          ],
+          "insurance": [
+            70000000.0,
+            105000000.0
+          ]
+        },
+        "expected_payout_usd": {
+          "reserve": 0.0,
+          "credit": 10476066.178718645,
+          "insurance": 483011.08995824377
+        },
+        "cost_usd": {
+          "reserve": 0.0,
+          "credit": 16846736.325714525,
+          "insurance": 1255828.833891434
+        },
+        "total_cost_usd": 18102565.159605958
+      },
+      "alternatives": {
+        "all_reserve": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              105000000.0
+            ],
+            "credit": [
+              105000000.0,
+              105000000.0
+            ],
+            "insurance": [
+              105000000.0,
+              105000000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 10959077.268676888,
+            "credit": 0.0,
+            "insurance": 0.0
+          },
+          "cost_usd": {
+            "reserve": 23090356.301017568,
+            "credit": 0.0,
+            "insurance": 0.0
+          },
+          "total_cost_usd": 23090356.301017568
+        },
+        "reserve_and_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              62500000.0
+            ],
+            "credit": [
+              62500000.0,
+              62500000.0
+            ],
+            "insurance": [
+              62500000.0,
+              105000000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 9916613.953709347,
+            "credit": 0.0,
+            "insurance": 1042463.3149675414
+          },
+          "cost_usd": {
+            "reserve": 16699870.75368084,
+            "credit": 0.0,
+            "insurance": 2710404.6189156077
+          },
+          "total_cost_usd": 19410275.372596446
+        },
+        "credit_and_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              0.0
+            ],
+            "credit": [
+              0.0,
+              70000000.0
+            ],
+            "insurance": [
+              70000000.0,
+              105000000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 0.0,
+            "credit": 10476066.178718645,
+            "insurance": 483011.08995824377
+          },
+          "cost_usd": {
+            "reserve": 0.0,
+            "credit": 16846736.325714525,
+            "insurance": 1255828.833891434
+          },
+          "total_cost_usd": 18102565.159605958
+        },
+        "all_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              0.0
+            ],
+            "credit": [
+              0.0,
+              0.0
+            ],
+            "insurance": [
+              0.0,
+              105000000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 0.0,
+            "credit": 0.0,
+            "insurance": 10959077.268676888
+          },
+          "cost_usd": {
+            "reserve": 0.0,
+            "credit": 0.0,
+            "insurance": 28493600.89855991
+          },
+          "total_cost_usd": 28493600.89855991
+        }
+      },
+      "saving_vs_all_reserve_usd": 4987791.14141161,
+      "saving_vs_all_reserve_percent": 21.601187423824218,
+      "candidates": 43,
+      "method": "exact scan over every attainable breakpoint (prefix minimum)"
+    },
+    {
+      "pool": "Synthetic overlapping-region chain (5 countries)",
+      "risk_limit": 0.015,
+      "term_years": 3.0,
+      "capacity_usd": 136250000.0,
+      "capacity_status": "resolved",
+      "basis": "base",
+      "parameters": {
+        "reserve_cost_per_year": 0.043,
+        "credit_front_end_fee": 0.0025,
+        "credit_fee_per_year": 0.0025,
+        "credit_drawn_cost": 0.972,
+        "credit_capacity_charge_per_year": 0.0284,
+        "insurance_multiple": 2.6,
+        "credit_limit_usd": null
+      },
+      "sources": {
+        "reserve_cost": "Clarke, Mahul, Poulter & Teh (2016), World Bank WPS 7721: (i - r)/(1 + i) with i = 5.5%, r = 1%",
+        "credit_fees": "ADB Contingent Disaster Financing, Crisis Preparedness and Response Toolkit (2026): 0.25% front-end fee, 0.25% a year on the undrawn balance",
+        "credit_drawn": "Clarke et al. (2016) case study: (1 + c)/(1 + i) with c = 2.5%, i = 5.5%",
+        "credit_capacity": "Clarke et al. (2016): beta (i - c)/(1 + i) per dollar arranged, beta = 1",
+        "insurance_multiple": "ADB 2026 Kyrgyz Republic disaster relief bond: 6.00% risk margin over 2.296% expected loss (Artemis deal directory)"
+      },
+      "optimal": {
+        "layers_usd": {
+          "reserve": [
+            0.0,
+            17500000.0
+          ],
+          "credit": [
+            17500000.0,
+            85500000.0
+          ],
+          "insurance": [
+            85500000.0,
+            136250000.0
+          ]
+        },
+        "expected_payout_usd": {
+          "reserve": 8842604.21355413,
+          "credit": 13787918.03177301,
+          "insurance": 1500003.3487738648
+        },
+        "cost_usd": {
+          "reserve": 9959408.270005647,
+          "credit": 19875456.32688337,
+          "insurance": 3900008.706812049
+        },
+        "total_cost_usd": 33734873.303701065
+      },
+      "alternatives": {
+        "all_reserve": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              136250000.0
+            ],
+            "credit": [
+              136250000.0,
+              136250000.0
+            ],
+            "insurance": [
+              136250000.0,
+              136250000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 24130525.594101008,
+            "credit": 0.0,
+            "insurance": 0.0
+          },
+          "cost_usd": {
+            "reserve": 38593937.79246198,
+            "credit": 0.0,
+            "insurance": 0.0
+          },
+          "total_cost_usd": 38593937.79246198
+        },
+        "reserve_and_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              82750000.0
+            ],
+            "credit": [
+              82750000.0,
+              82750000.0
+            ],
+            "insurance": [
+              82750000.0,
+              136250000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 22446741.824618332,
+            "credit": 0.0,
+            "insurance": 1683783.7694826734
+          },
+          "cost_usd": {
+            "reserve": 30225862.12924257,
+            "credit": 0.0,
+            "insurance": 4377837.800654951
+          },
+          "total_cost_usd": 34603699.92989752
+        },
+        "credit_and_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              0.0
+            ],
+            "credit": [
+              0.0,
+              85500000.0
+            ],
+            "insurance": [
+              85500000.0,
+              136250000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 0.0,
+            "credit": 22630522.24532714,
+            "insurance": 1500003.3487738648
+          },
+          "cost_usd": {
+            "reserve": 0.0,
+            "credit": 30136467.62245798,
+            "insurance": 3900008.706812049
+          },
+          "total_cost_usd": 34036476.32927003
+        },
+        "all_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              0.0
+            ],
+            "credit": [
+              0.0,
+              0.0
+            ],
+            "insurance": [
+              0.0,
+              136250000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 0.0,
+            "credit": 0.0,
+            "insurance": 24130525.594101008
+          },
+          "cost_usd": {
+            "reserve": 0.0,
+            "credit": 0.0,
+            "insurance": 62739366.544662625
+          },
+          "total_cost_usd": 62739366.544662625
+        }
+      },
+      "saving_vs_all_reserve_usd": 4859064.488760911,
+      "saving_vs_all_reserve_percent": 12.590227291370008,
+      "candidates": 546,
+      "method": "exact scan over every attainable breakpoint (prefix minimum)"
+    },
+    {
+      "pool": "Synthetic overlapping-region chain (5 countries)",
+      "risk_limit": 0.015,
+      "term_years": 3.0,
+      "capacity_usd": 136250000.0,
+      "capacity_status": "resolved",
+      "basis": "bound",
+      "parameters": {
+        "reserve_cost_per_year": 0.043,
+        "credit_front_end_fee": 0.0025,
+        "credit_fee_per_year": 0.0025,
+        "credit_drawn_cost": 0.972,
+        "credit_capacity_charge_per_year": 0.0284,
+        "insurance_multiple": 2.6,
+        "credit_limit_usd": null
+      },
+      "sources": {
+        "reserve_cost": "Clarke, Mahul, Poulter & Teh (2016), World Bank WPS 7721: (i - r)/(1 + i) with i = 5.5%, r = 1%",
+        "credit_fees": "ADB Contingent Disaster Financing, Crisis Preparedness and Response Toolkit (2026): 0.25% front-end fee, 0.25% a year on the undrawn balance",
+        "credit_drawn": "Clarke et al. (2016) case study: (1 + c)/(1 + i) with c = 2.5%, i = 5.5%",
+        "credit_capacity": "Clarke et al. (2016): beta (i - c)/(1 + i) per dollar arranged, beta = 1",
+        "insurance_multiple": "ADB 2026 Kyrgyz Republic disaster relief bond: 6.00% risk margin over 2.296% expected loss (Artemis deal directory)"
+      },
+      "optimal": {
+        "layers_usd": {
+          "reserve": [
+            0.0,
+            26250000.0
+          ],
+          "credit": [
+            26250000.0,
+            87250000.0
+          ],
+          "insurance": [
+            87250000.0,
+            136250000.0
+          ]
+        },
+        "expected_payout_usd": {
+          "reserve": 12946396.72689509,
+          "credit": 12522788.170512889,
+          "insurance": 1713448.6586642193
+        },
+        "cost_usd": {
+          "reserve": 14662561.549125623,
+          "credit": 17979350.101738527,
+          "insurance": 4454966.51252697
+        },
+        "total_cost_usd": 37096878.16339112
+      },
+      "alternatives": {
+        "all_reserve": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              136250000.0
+            ],
+            "credit": [
+              136250000.0,
+              136250000.0
+            ],
+            "insurance": [
+              136250000.0,
+              136250000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 27182633.556072198,
+            "credit": 0.0,
+            "insurance": 0.0
+          },
+          "cost_usd": {
+            "reserve": 41252323.82733888,
+            "credit": 0.0,
+            "insurance": 0.0
+          },
+          "total_cost_usd": 41252323.82733888
+        },
+        "reserve_and_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              84750000.0
+            ],
+            "credit": [
+              84750000.0,
+              84750000.0
+            ],
+            "insurance": [
+              84750000.0,
+              136250000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 25303618.28624015,
+            "credit": 0.0,
+            "insurance": 1879015.2698320483
+          },
+          "cost_usd": {
+            "reserve": 32972201.52731517,
+            "credit": 0.0,
+            "insurance": 4885439.701563326
+          },
+          "total_cost_usd": 37857641.2288785
+        },
+        "credit_and_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              0.0
+            ],
+            "credit": [
+              0.0,
+              87250000.0
+            ],
+            "insurance": [
+              87250000.0,
+              136250000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 0.0,
+            "credit": 25469184.89740798,
+            "insurance": 1713448.6586642193
+          },
+          "cost_usd": {
+            "reserve": 0.0,
+            "credit": 33062247.720280554,
+            "insurance": 4454966.51252697
+          },
+          "total_cost_usd": 37517214.232807525
+        },
+        "all_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              0.0
+            ],
+            "credit": [
+              0.0,
+              0.0
+            ],
+            "insurance": [
+              0.0,
+              136250000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 0.0,
+            "credit": 0.0,
+            "insurance": 27182633.556072198
+          },
+          "cost_usd": {
+            "reserve": 0.0,
+            "credit": 0.0,
+            "insurance": 70674847.24578771
+          },
+          "total_cost_usd": 70674847.24578771
+        }
+      },
+      "saving_vs_all_reserve_usd": 4155445.663947761,
+      "saving_vs_all_reserve_percent": 10.073240192092767,
+      "candidates": 546,
+      "method": "exact scan over every attainable breakpoint (prefix minimum)"
+    },
+    {
+      "pool": "Synthetic overlapping-region chain (5 countries)",
+      "risk_limit": 0.005,
+      "term_years": 3.0,
+      "capacity_usd": 155500000.0,
+      "capacity_status": "resolved",
+      "basis": "base",
+      "parameters": {
+        "reserve_cost_per_year": 0.043,
+        "credit_front_end_fee": 0.0025,
+        "credit_fee_per_year": 0.0025,
+        "credit_drawn_cost": 0.972,
+        "credit_capacity_charge_per_year": 0.0284,
+        "insurance_multiple": 2.6,
+        "credit_limit_usd": null
+      },
+      "sources": {
+        "reserve_cost": "Clarke, Mahul, Poulter & Teh (2016), World Bank WPS 7721: (i - r)/(1 + i) with i = 5.5%, r = 1%",
+        "credit_fees": "ADB Contingent Disaster Financing, Crisis Preparedness and Response Toolkit (2026): 0.25% front-end fee, 0.25% a year on the undrawn balance",
+        "credit_drawn": "Clarke et al. (2016) case study: (1 + c)/(1 + i) with c = 2.5%, i = 5.5%",
+        "credit_capacity": "Clarke et al. (2016): beta (i - c)/(1 + i) per dollar arranged, beta = 1",
+        "insurance_multiple": "ADB 2026 Kyrgyz Republic disaster relief bond: 6.00% risk margin over 2.296% expected loss (Artemis deal directory)"
+      },
+      "optimal": {
+        "layers_usd": {
+          "reserve": [
+            0.0,
+            17500000.0
+          ],
+          "credit": [
+            17500000.0,
+            85500000.0
+          ],
+          "insurance": [
+            85500000.0,
+            155500000.0
+          ]
+        },
+        "expected_payout_usd": {
+          "reserve": 8842604.21355413,
+          "credit": 13787918.03177301,
+          "insurance": 1632763.8235771267
+        },
+        "cost_usd": {
+          "reserve": 9959408.270005647,
+          "credit": 19875456.32688337,
+          "insurance": 4245185.94130053
+        },
+        "total_cost_usd": 34080050.538189545
+      },
+      "alternatives": {
+        "all_reserve": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              155500000.0
+            ],
+            "credit": [
+              155500000.0,
+              155500000.0
+            ],
+            "insurance": [
+              155500000.0,
+              155500000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 24263286.06890427,
+            "credit": 0.0,
+            "insurance": 0.0
+          },
+          "cost_usd": {
+            "reserve": 41192822.166015625,
+            "credit": 0.0,
+            "insurance": 0.0
+          },
+          "total_cost_usd": 41192822.166015625
+        },
+        "reserve_and_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              82750000.0
+            ],
+            "credit": [
+              82750000.0,
+              82750000.0
+            ],
+            "insurance": [
+              82750000.0,
+              155500000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 22446741.824618332,
+            "credit": 0.0,
+            "insurance": 1816544.2442859353
+          },
+          "cost_usd": {
+            "reserve": 30225862.12924257,
+            "credit": 0.0,
+            "insurance": 4723015.035143432
+          },
+          "total_cost_usd": 34948877.164386004
+        },
+        "credit_and_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              0.0
+            ],
+            "credit": [
+              0.0,
+              85500000.0
+            ],
+            "insurance": [
+              85500000.0,
+              155500000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 0.0,
+            "credit": 22630522.24532714,
+            "insurance": 1632763.8235771267
+          },
+          "cost_usd": {
+            "reserve": 0.0,
+            "credit": 30136467.62245798,
+            "insurance": 4245185.94130053
+          },
+          "total_cost_usd": 34381653.56375851
+        },
+        "all_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              0.0
+            ],
+            "credit": [
+              0.0,
+              0.0
+            ],
+            "insurance": [
+              0.0,
+              155500000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 0.0,
+            "credit": 0.0,
+            "insurance": 24263286.06890427
+          },
+          "cost_usd": {
+            "reserve": 0.0,
+            "credit": 0.0,
+            "insurance": 63084543.779151104
+          },
+          "total_cost_usd": 63084543.779151104
+        }
+      },
+      "saving_vs_all_reserve_usd": 7112771.62782608,
+      "saving_vs_all_reserve_percent": 17.26701705253438,
+      "candidates": 623,
+      "method": "exact scan over every attainable breakpoint (prefix minimum)"
+    },
+    {
+      "pool": "Synthetic overlapping-region chain (5 countries)",
+      "risk_limit": 0.005,
+      "term_years": 3.0,
+      "capacity_usd": 155500000.0,
+      "capacity_status": "resolved",
+      "basis": "bound",
+      "parameters": {
+        "reserve_cost_per_year": 0.043,
+        "credit_front_end_fee": 0.0025,
+        "credit_fee_per_year": 0.0025,
+        "credit_drawn_cost": 0.972,
+        "credit_capacity_charge_per_year": 0.0284,
+        "insurance_multiple": 2.6,
+        "credit_limit_usd": null
+      },
+      "sources": {
+        "reserve_cost": "Clarke, Mahul, Poulter & Teh (2016), World Bank WPS 7721: (i - r)/(1 + i) with i = 5.5%, r = 1%",
+        "credit_fees": "ADB Contingent Disaster Financing, Crisis Preparedness and Response Toolkit (2026): 0.25% front-end fee, 0.25% a year on the undrawn balance",
+        "credit_drawn": "Clarke et al. (2016) case study: (1 + c)/(1 + i) with c = 2.5%, i = 5.5%",
+        "credit_capacity": "Clarke et al. (2016): beta (i - c)/(1 + i) per dollar arranged, beta = 1",
+        "insurance_multiple": "ADB 2026 Kyrgyz Republic disaster relief bond: 6.00% risk margin over 2.296% expected loss (Artemis deal directory)"
+      },
+      "optimal": {
+        "layers_usd": {
+          "reserve": [
+            0.0,
+            26250000.0
+          ],
+          "credit": [
+            26250000.0,
+            87500000.0
+          ],
+          "insurance": [
+            87500000.0,
+            155500000.0
+          ]
+        },
+        "expected_payout_usd": {
+          "reserve": 13145251.841821479,
+          "credit": 12638167.219911754,
+          "insurance": 1902048.8644322075
+        },
+        "cost_usd": {
+          "reserve": 14835764.354226507,
+          "credit": 18115298.537754223,
+          "insurance": 4945327.04752374
+        },
+        "total_cost_usd": 37896389.93950447
+      },
+      "alternatives": {
+        "all_reserve": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              155500000.0
+            ],
+            "credit": [
+              155500000.0,
+              155500000.0
+            ],
+            "insurance": [
+              155500000.0,
+              155500000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 27685467.92616544,
+            "credit": 0.0,
+            "insurance": 0.0
+          },
+          "cost_usd": {
+            "reserve": 44173542.563690096,
+            "credit": 0.0,
+            "insurance": 0.0
+          },
+          "total_cost_usd": 44173542.563690096
+        },
+        "reserve_and_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              85250000.0
+            ],
+            "credit": [
+              85250000.0,
+              85250000.0
+            ],
+            "insurance": [
+              85250000.0,
+              155500000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 25636628.129552513,
+            "credit": 0.0,
+            "insurance": 2048839.7966129282
+          },
+          "cost_usd": {
+            "reserve": 33326753.10084024,
+            "credit": 0.0,
+            "insurance": 5326983.4711936135
+          },
+          "total_cost_usd": 38653736.57203385
+        },
+        "credit_and_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              0.0
+            ],
+            "credit": [
+              0.0,
+              87500000.0
+            ],
+            "insurance": [
+              87500000.0,
+              155500000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 0.0,
+            "credit": 25783419.061733235,
+            "insurance": 1902048.8644322075
+          },
+          "cost_usd": {
+            "reserve": 0.0,
+            "credit": 33391483.328004703,
+            "insurance": 4945327.04752374
+          },
+          "total_cost_usd": 38336810.37552844
+        },
+        "all_insurance": {
+          "layers_usd": {
+            "reserve": [
+              0.0,
+              0.0
+            ],
+            "credit": [
+              0.0,
+              0.0
+            ],
+            "insurance": [
+              0.0,
+              155500000.0
+            ]
+          },
+          "expected_payout_usd": {
+            "reserve": 0.0,
+            "credit": 0.0,
+            "insurance": 27685467.92616544
+          },
+          "cost_usd": {
+            "reserve": 0.0,
+            "credit": 0.0,
+            "insurance": 71982216.60803014
+          },
+          "total_cost_usd": 71982216.60803014
+        }
+      },
+      "saving_vs_all_reserve_usd": 6277152.624185629,
+      "saving_vs_all_reserve_percent": 14.21020878082199,
+      "candidates": 623,
+      "method": "exact scan over every attainable breakpoint (prefix minimum)"
+    }
+  ],
+  "sensitivity": [
+    {
+      "case": "insurance multiple 1.5",
+      "layers_usd": {
+        "reserve": [
+          0.0,
+          0.0
+        ],
+        "credit": [
+          0.0,
+          17500000.0
+        ],
+        "insurance": [
+          17500000.0,
+          87500000.0
+        ]
+      },
+      "total_cost_usd": 14098909.172624739,
+      "saving_vs_all_reserve_percent": 29.09984993675148
+    },
+    {
+      "case": "insurance multiple 4.5",
+      "layers_usd": {
+        "reserve": [
+          0.0,
+          0.0
+        ],
+        "credit": [
+          0.0,
+          70000000.0
+        ],
+        "insurance": [
+          70000000.0,
+          87500000.0
+        ]
+      },
+      "total_cost_usd": 17177151.914322376,
+      "saving_vs_all_reserve_percent": 13.620079860550778
+    },
+    {
+      "case": "credit line capped at $40m",
+      "layers_usd": {
+        "reserve": [
+          0.0,
+          22500000.0
+        ],
+        "credit": [
+          22500000.0,
+          62500000.0
+        ],
+        "insurance": [
+          62500000.0,
+          87500000.0
+        ]
+      },
+      "total_cost_usd": 17053228.79805117,
+      "saving_vs_all_reserve_percent": 14.243260521718065
+    },
+    {
+      "case": "no credit capacity charge",
+      "layers_usd": {
+        "reserve": [
+          0.0,
+          0.0
+        ],
+        "credit": [
+          0.0,
+          87500000.0
+        ],
+        "insurance": [
+          87500000.0,
+          87500000.0
+        ]
+      },
+      "total_cost_usd": 10470106.803593026,
+      "saving_vs_all_reserve_percent": 47.34825691378025
+    }
+  ],
+  "frontier": [
+    {
+      "risk_limit": 0.005,
+      "capacity_usd": 105000000.0,
+      "optimal_cost_usd": 16934671.695152987,
+      "all_reserve_cost_usd": 22227481.55195338,
+      "layers_usd": {
+        "reserve": [
+          0.0,
+          0.0
+        ],
+        "credit": [
+          0.0,
+          70000000.0
+        ],
+        "insurance": [
+          70000000.0,
+          105000000.0
+        ]
+      }
+    },
+    {
+      "risk_limit": 0.0075,
+      "capacity_usd": 97500000.0,
+      "optimal_cost_usd": 16835086.77189187,
+      "all_reserve_cost_usd": 21226620.602660906,
+      "layers_usd": {
+        "reserve": [
+          0.0,
+          0.0
+        ],
+        "credit": [
+          0.0,
+          70000000.0
+        ],
+        "insurance": [
+          70000000.0,
+          97500000.0
+        ]
+      }
+    },
+    {
+      "risk_limit": 0.01,
+      "capacity_usd": 87500000.0,
+      "optimal_cost_usd": 16682739.864893306,
+      "all_reserve_cost_usd": 19885584.388816386,
+      "layers_usd": {
+        "reserve": [
+          0.0,
+          0.0
+        ],
+        "credit": [
+          0.0,
+          70000000.0
+        ],
+        "insurance": [
+          70000000.0,
+          87500000.0
+        ]
+      }
+    },
+    {
+      "risk_limit": 0.015,
+      "capacity_usd": 87500000.0,
+      "optimal_cost_usd": 16682739.864893306,
+      "all_reserve_cost_usd": 19885584.388816386,
+      "layers_usd": {
+        "reserve": [
+          0.0,
+          0.0
+        ],
+        "credit": [
+          0.0,
+          70000000.0
+        ],
+        "insurance": [
+          70000000.0,
+          87500000.0
+        ]
+      }
+    },
+    {
+      "risk_limit": 0.02,
+      "capacity_usd": 80000000.0,
+      "optimal_cost_usd": 16447828.807196392,
+      "all_reserve_cost_usd": 18839389.184487917,
+      "layers_usd": {
+        "reserve": [
+          0.0,
+          0.0
+        ],
+        "credit": [
+          0.0,
+          70000000.0
+        ],
+        "insurance": [
+          70000000.0,
+          80000000.0
+        ]
+      }
+    },
+    {
+      "risk_limit": 0.03,
+      "capacity_usd": 70000000.0,
+      "optimal_cost_usd": 16006176.00777984,
+      "all_reserve_cost_usd": 17401435.496683374,
+      "layers_usd": {
+        "reserve": [
+          0.0,
+          0.0
+        ],
+        "credit": [
+          0.0,
+          70000000.0
+        ],
+        "insurance": [
+          70000000.0,
+          70000000.0
+        ]
+      }
+    },
+    {
+      "risk_limit": 0.05,
+      "capacity_usd": 70000000.0,
+      "optimal_cost_usd": 16006176.00777984,
+      "all_reserve_cost_usd": 17401435.496683374,
+      "layers_usd": {
+        "reserve": [
+          0.0,
+          0.0
+        ],
+        "credit": [
+          0.0,
+          70000000.0
+        ],
+        "insurance": [
+          70000000.0,
+          70000000.0
+        ]
+      }
+    }
+  ],
+  "pooling": [
+    {
+      "pool": "Public two-bond example (ADB 2026 KGZ and TJK bonds)",
+      "risk_limit": 0.015,
+      "pooled_reserve_usd": 87500000.0,
+      "pooled_status": "resolved",
+      "standalone_total_usd": 140000000.0,
+      "saving_usd": 52500000.0,
+      "saving_percent": 37.5,
+      "members": [
+        {
+          "country": "KGZ",
+          "name": "Kyrgyz Republic",
+          "reserve_usd": 70000000.0,
+          "cap_usd": 80000000.0,
+          "standalone_share_usd": 43750000.0,
+          "shortfall_contribution_usd": 46134082.718266726,
+          "expected_payout_given_shortfall_usd": 54815588.00771976
+        },
+        {
+          "country": "TJK",
+          "name": "Tajikistan",
+          "reserve_usd": 70000000.0,
+          "cap_usd": 80000000.0,
+          "standalone_share_usd": 43750000.0,
+          "shortfall_contribution_usd": 41365917.28173328,
+          "expected_payout_given_shortfall_usd": 49150149.8604435
+        }
+      ],
+      "allocation_amount_usd": 85000000.0,
+      "allocation_scenario": "shared earthquake rate 2 x base, shared rain 25% of the smaller neighbouring rain rate",
+      "evaluations": 12
+    },
+    {
+      "pool": "Public two-bond example (ADB 2026 KGZ and TJK bonds)",
+      "risk_limit": 0.005,
+      "pooled_reserve_usd": 105000000.0,
+      "pooled_status": "resolved",
+      "standalone_total_usd": 140000000.0,
+      "saving_usd": 35000000.0,
+      "saving_percent": 25.0,
+      "members": [
+        {
+          "country": "KGZ",
+          "name": "Kyrgyz Republic",
+          "reserve_usd": 70000000.0,
+          "cap_usd": 80000000.0,
+          "standalone_share_usd": 52500000.0,
+          "shortfall_contribution_usd": 52058013.83288586,
+          "expected_payout_given_shortfall_usd": 61313001.60381047
+        },
+        {
+          "country": "TJK",
+          "name": "Tajikistan",
+          "reserve_usd": 70000000.0,
+          "cap_usd": 80000000.0,
+          "standalone_share_usd": 52500000.0,
+          "shortfall_contribution_usd": 52941986.16711414,
+          "expected_payout_given_shortfall_usd": 62354128.47661529
+        }
+      ],
+      "allocation_amount_usd": 102500000.0,
+      "allocation_scenario": "shared earthquake rate 2 x base, shared rain 25% of the smaller neighbouring rain rate",
+      "evaluations": 44
+    },
+    {
+      "pool": "Synthetic overlapping-region chain (5 countries)",
+      "risk_limit": 0.015,
+      "pooled_reserve_usd": 136250000.0,
+      "pooled_status": "resolved",
+      "standalone_total_usd": 340000000.0,
+      "saving_usd": 203750000.0,
+      "saving_percent": 59.9264705882353,
+      "members": [
+        {
+          "country": "S01",
+          "name": "Synthetic country 1 (KGZ calibration)",
+          "reserve_usd": 66000000.0,
+          "cap_usd": 74000000.0,
+          "standalone_share_usd": 26448529.411764707,
+          "shortfall_contribution_usd": 18872897.394922152,
+          "expected_payout_given_shortfall_usd": 21765259.81070502
+        },
+        {
+          "country": "S02",
+          "name": "Synthetic country 2 (TJK calibration)",
+          "reserve_usd": 67000000.0,
+          "cap_usd": 75250000.0,
+          "standalone_share_usd": 26849264.70588235,
+          "shortfall_contribution_usd": 22614606.137417752,
+          "expected_payout_given_shortfall_usd": 26080403.43768806
+        },
+        {
+          "country": "S03",
+          "name": "Synthetic country 3 (KGZ calibration)",
+          "reserve_usd": 68000000.0,
+          "cap_usd": 76500000.0,
+          "standalone_share_usd": 27250000.0,
+          "shortfall_contribution_usd": 30904505.131854292,
+          "expected_payout_given_shortfall_usd": 35640769.376357324
+        },
+        {
+          "country": "S04",
+          "name": "Synthetic country 4 (TJK calibration)",
+          "reserve_usd": 69000000.0,
+          "cap_usd": 77750000.0,
+          "standalone_share_usd": 27650735.29411765,
+          "shortfall_contribution_usd": 33143419.85366396,
+          "expected_payout_given_shortfall_usd": 38222808.56167663
+        },
+        {
+          "country": "S05",
+          "name": "Synthetic country 5 (KGZ calibration)",
+          "reserve_usd": 70000000.0,
+          "cap_usd": 79000000.0,
+          "standalone_share_usd": 28051470.588235293,
+          "shortfall_contribution_usd": 30714571.48214186,
+          "expected_payout_given_shortfall_usd": 35421727.48012475
+        }
+      ],
+      "allocation_amount_usd": 136000000.0,
+      "allocation_scenario": "shared earthquake rate 2 x base, shared rain 0% of the smaller neighbouring rain rate",
+      "evaluations": 578
+    },
+    {
+      "pool": "Synthetic overlapping-region chain (5 countries)",
+      "risk_limit": 0.005,
+      "pooled_reserve_usd": 155500000.0,
+      "pooled_status": "resolved",
+      "standalone_total_usd": 340000000.0,
+      "saving_usd": 184500000.0,
+      "saving_percent": 54.26470588235294,
+      "members": [
+        {
+          "country": "S01",
+          "name": "Synthetic country 1 (KGZ calibration)",
+          "reserve_usd": 66000000.0,
+          "cap_usd": 74000000.0,
+          "standalone_share_usd": 30185294.11764706,
+          "shortfall_contribution_usd": 27006747.37241152,
+          "expected_payout_given_shortfall_usd": 31911941.921281155
+        },
+        {
+          "country": "S02",
+          "name": "Synthetic country 2 (TJK calibration)",
+          "reserve_usd": 67000000.0,
+          "cap_usd": 75250000.0,
+          "standalone_share_usd": 30642647.05882353,
+          "shortfall_contribution_usd": 29640754.23752347,
+          "expected_payout_given_shortfall_usd": 35024359.45681805
+        },
+        {
+          "country": "S03",
+          "name": "Synthetic country 3 (KGZ calibration)",
+          "reserve_usd": 68000000.0,
+          "cap_usd": 76500000.0,
+          "standalone_share_usd": 31100000.0,
+          "shortfall_contribution_usd": 33108629.71701788,
+          "expected_payout_given_shortfall_usd": 39122099.89796837
+        },
+        {
+          "country": "S04",
+          "name": "Synthetic country 4 (TJK calibration)",
+          "reserve_usd": 69000000.0,
+          "cap_usd": 77750000.0,
+          "standalone_share_usd": 31557352.94117647,
+          "shortfall_contribution_usd": 33695372.79246455,
+          "expected_payout_given_shortfall_usd": 39815412.22796392
+        },
+        {
+          "country": "S05",
+          "name": "Synthetic country 5 (KGZ calibration)",
+          "reserve_usd": 70000000.0,
+          "cap_usd": 79000000.0,
+          "standalone_share_usd": 32014705.88235294,
+          "shortfall_contribution_usd": 32048495.88058258,
+          "expected_payout_given_shortfall_usd": 37869415.56132485
+        }
+      ],
+      "allocation_amount_usd": 155250000.0,
+      "allocation_scenario": "shared earthquake rate 2 x base, shared rain 0% of the smaller neighbouring rain rate",
+      "evaluations": 338
+    }
+  ],
+  "qaoa": [
+    {
+      "candidate_levels_usd": [
+        0.0,
+        17500000.0,
+        35000000.0,
+        52500000.0,
+        70000000.0,
+        87500000.0
+      ],
+      "variables": 12,
+      "penalty": 4.436477234403241,
+      "brute_force_optimum": {
+        "reserve": [
+          0.0,
+          0.0
+        ],
+        "credit": [
+          0.0,
+          70000000.0
+        ],
+        "insurance": [
+          70000000.0,
+          87500000.0
+        ]
+      },
+      "brute_force_cost_usd": 16682739.864893306,
+      "most_frequent_feasible_sample": {
+        "reserve": [
+          0.0,
+          0.0
+        ],
+        "credit": [
+          0.0,
+          70000000.0
+        ],
+        "insurance": [
+          70000000.0,
+          87500000.0
+        ]
+      },
+      "most_frequent_feasible_cost_usd": 16682739.864893306,
+      "qaoa_finds_optimum": true,
+      "qubits": 12,
+      "reps": 3,
+      "parameters": 6,
+      "cvar_alpha": 0.25,
+      "objective_evaluations": 1142,
+      "most_frequent_index": 1025,
+      "most_frequent_is_optimal": true,
+      "shots": 4000,
+      "uniform_probability_optimal": 0.000244140625,
+      "compiled_cx": 528,
+      "compiled_depth": 666,
+      "mixer": "XY ring (one-hot preserving)",
+      "simulator": "Qiskit Aer SamplerV2, seeded shots; training on the exact statevector",
+      "probability_feasible_sampled": 0.7815,
+      "probability_feasible_trained_state": 0.7864286492832442,
+      "probability_optimal_trained_state": 0.2507004068138358,
+      "probability_optimal_sampled": 0.249,
+      "optimal_index": 1025
+    },
+    {
+      "candidate_levels_usd": [
+        0.0,
+        17500000.0,
+        35000000.0,
+        52500000.0,
+        70000000.0,
+        87500000.0
+      ],
+      "variables": 12,
+      "penalty": 4.436477234403241,
+      "brute_force_optimum": {
+        "reserve": [
+          0.0,
+          0.0
+        ],
+        "credit": [
+          0.0,
+          70000000.0
+        ],
+        "insurance": [
+          70000000.0,
+          87500000.0
+        ]
+      },
+      "brute_force_cost_usd": 16682739.864893306,
+      "most_frequent_feasible_sample": {
+        "reserve": [
+          0.0,
+          0.0
+        ],
+        "credit": [
+          0.0,
+          0.0
+        ],
+        "insurance": [
+          0.0,
+          87500000.0
+        ]
+      },
+      "most_frequent_feasible_cost_usd": 25665923.548705626,
+      "qaoa_finds_optimum": false,
+      "qubits": 12,
+      "reps": 3,
+      "parameters": 6,
+      "cvar_alpha": 0.25,
+      "objective_evaluations": 1517,
+      "most_frequent_index": 65,
+      "most_frequent_is_optimal": false,
+      "shots": 4000,
+      "uniform_probability_optimal": 0.000244140625,
+      "compiled_cx": 270,
+      "compiled_depth": 148,
+      "mixer": "standard X",
+      "simulator": "Qiskit Aer SamplerV2, seeded shots; training on the exact statevector",
+      "probability_feasible_sampled": 0.17550000000000002,
+      "probability_feasible_trained_state": 0.16883246495494705,
+      "probability_optimal_trained_state": 0.02440938177656751,
+      "probability_optimal_sampled": 0.02325,
+      "optimal_index": 1025
+    }
+  ]
+}
