@@ -1,0 +1,82 @@
+{
+  "schema": "dlr-surrogate-v1",
+  "method": "Gaussian-process regression (Matern 5/2, ARD) on log10 exceedance per reserve level, AK-MCS U-criterion active learning, stop at U >= 2 or 60 evaluations",
+  "note": "Exploration only. Certified reserve bounds come from the dominating models.",
+  "rows": [
+    {
+      "pool": "Public two-bond example (ADB 2026 KGZ and TJK bonds)",
+      "countries": 2,
+      "risk_limit": 0.015,
+      "grid": "21x21",
+      "exact_evaluations": 441,
+      "surrogate_evaluations": 13,
+      "evaluations_saved_percent": 97.05215419501134,
+      "cells_correct_percent": 100.0,
+      "max_abs_error_usd": 0.0,
+      "distinct_reserves": 4,
+      "stopping": "confidence",
+      "exact_seconds": 0.09219710000070336,
+      "surrogate_seconds": 0.11272139999982755
+    },
+    {
+      "pool": "Public two-bond example (ADB 2026 KGZ and TJK bonds)",
+      "countries": 2,
+      "risk_limit": 0.005,
+      "grid": "21x21",
+      "exact_evaluations": 441,
+      "surrogate_evaluations": 13,
+      "evaluations_saved_percent": 97.05215419501134,
+      "cells_correct_percent": 100.0,
+      "max_abs_error_usd": 0.0,
+      "distinct_reserves": 4,
+      "stopping": "confidence",
+      "exact_seconds": 0.09184729999924457,
+      "surrogate_seconds": 0.13480629999958182
+    },
+    {
+      "pool": "Synthetic overlapping-region chain (5 countries)",
+      "countries": 5,
+      "risk_limit": 0.015,
+      "grid": "21x21",
+      "exact_evaluations": 441,
+      "surrogate_evaluations": 21,
+      "evaluations_saved_percent": 95.23809523809523,
+      "cells_correct_percent": 100.0,
+      "max_abs_error_usd": 0.0,
+      "distinct_reserves": 32,
+      "stopping": "confidence",
+      "exact_seconds": 0.9489382000001569,
+      "surrogate_seconds": 0.3720153999993272
+    },
+    {
+      "pool": "Synthetic overlapping-region chain (10 countries)",
+      "countries": 10,
+      "risk_limit": 0.015,
+      "grid": "21x21",
+      "exact_evaluations": 441,
+      "surrogate_evaluations": 30,
+      "evaluations_saved_percent": 93.19727891156462,
+      "cells_correct_percent": 100.0,
+      "max_abs_error_usd": 0.0,
+      "distinct_reserves": 53,
+      "stopping": "confidence",
+      "exact_seconds": 2.3965226999998777,
+      "surrogate_seconds": 0.8185713000002579
+    },
+    {
+      "pool": "Synthetic overlapping-region chain (20 countries)",
+      "countries": 20,
+      "risk_limit": 0.015,
+      "grid": "21x21",
+      "exact_evaluations": 441,
+      "surrogate_evaluations": 32,
+      "evaluations_saved_percent": 92.7437641723356,
+      "cells_correct_percent": 100.0,
+      "max_abs_error_usd": 0.0,
+      "distinct_reserves": 62,
+      "stopping": "confidence",
+      "exact_seconds": 9.673715099999754,
+      "surrogate_seconds": 1.7501570999993419
+    }
+  ]
+}
