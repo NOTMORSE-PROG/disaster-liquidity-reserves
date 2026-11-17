@@ -310,9 +310,11 @@ level 1, seed 7).
 | [`results/layering.json`](results/layering.json) | Financing stacks, sensitivity, cost frontier, pooling benefit and QAOA runs |
 | [`results/surrogate.json`](results/surrogate.json) | ML surrogate against the exact map, 2 to 20 countries |
 | [`results/noise.json`](results/noise.json) | Amplitude estimation under Heron-class noise and the error budget |
-| [`docs/screenshots/`](docs/screenshots) | The Decision, Scenarios, Evidence and Method views |
+| [`docs/screenshots/`](docs/screenshots) | The Decision, Scenarios, Financing, Evidence and Method views |
 
 ![Where the decision binds: refinement cells for the synthetic five-country chain](docs/screenshots/synthetic-five-countries.jpg)
+
+![Financing view: the cheapest reserve, credit and insurance stack for the public two-bond example](docs/screenshots/financing.jpg)
 
 ## Layout
 
